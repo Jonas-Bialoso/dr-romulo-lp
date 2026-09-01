@@ -18,8 +18,34 @@ totalmente diferente. Isso é o fato que estrutura todo o modelo.
 
 | # | LP | Frame Figma | Tema | Headline | Status |
 |---|----|-------------|------|----------|--------|
-| 1 | Retirada de preenchimento | `7075:28` (1440×9443) | Hialuronidase guiada por ultrassom | "Antes de dissolver, é preciso enxergar." | **HTML/CSS concluído** — 13/13 seções |
-| 2 | Liftera | `7002:24` (1440×11214) | Ultrassom microfocado / flacidez | "Quando o rosto começa a perder sustentação…" | pendente |
+| 1 | Retirada de preenchimento | `7075:28` (1440×9443) | Hialuronidase guiada por ultrassom | "Antes de dissolver, é preciso enxergar." | **concluída** — `index.html` |
+| 2 | Liftera | `7002:24` (1440×11214) | Ultrassom microfocado / flacidez | "Quando o rosto começa a perder sustentação…" | **concluída** — `liftera.html` |
+
+### Publicação
+
+GitHub Pages, branch `main`, raiz do repositório:
+
+- LP1 — https://jonas-bialoso.github.io/dr-romulo-lp/
+- LP2 — https://jonas-bialoso.github.io/dr-romulo-lp/liftera.html
+- Repositório — https://github.com/Jonas-Bialoso/dr-romulo-lp
+
+**O repositório é público**, exigência do GitHub Pages no plano gratuito. As fotos do
+médico e do consultório, e os placeholders de CRM, estão acessíveis na internet aberta e
+são indexáveis. Trocar para privado exige GitHub Pro ou outra hospedagem.
+
+### Componentes compartilhados entre as duas LPs
+
+Header, sobre-o-médico, carrossel do consultório e depoimentos são os mesmos COMPONENT do
+Figma. O montador (`scratchpad/montar-lp2.mjs`) extrai esses blocos do `index.html` e os
+insere no `liftera.html` sem tocar em um caractere — a Fase 3 da skill proíbe regerar
+componente compartilhado a partir do Figma, porque isso introduz drift.
+
+**Uma exceção deliberada:** a âncora do item "O que é o Liftera" no menu. Ela precisa
+resolver na página em que está, então aponta para `#por-que-ultrassom` na LP1 e para
+`#o-que-e-o-liftera` na LP2. É o único ponto de divergência.
+
+O rodapé **não** é byte-idêntico: a instância do Figma sobrescreve o disclaimer (a LP2
+menciona a Anvisa) e a linha do responsável técnico.
 
 ### Estado da LP1 (estático)
 
