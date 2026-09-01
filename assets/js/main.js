@@ -284,8 +284,10 @@
     '.about__left', '.consultorio__text', '.consultorio__action',
     '.carousel', '.depoimentos__head', '.depoimentos__carousel',
     '.cta-band__content', '.cta-band__actions',
-    '.cta-final__content', '.cta-final__photo',
-    '.site-footer__col', '.site-footer__base'
+    '.cta-final__content', '.cta-final__photo'
+    // O rodapé fica de fora: é a última coisa da página e, quando não há
+    // rolagem sobrando para trazê-lo ao viewport, o observer nunca dispara
+    // e as informações ficam invisíveis.
   ];
 
   var MIDIAS = ['.hero__media', '.split-media__figure', '.cta-final__photo'];
