@@ -1352,12 +1352,15 @@ html { scroll-behavior: smooth; }
 /* Carousel_Wrapper — pad-left no gutter, VERTICAL gap 24.
    position:relative porque as setas são ancoradas aqui, e não no viewport:
    dentro do container de scroll elas rolariam junto com os slides. */
+/* Sangra dos dois lados. O alinhamento ao grid vem do padding do track, não
+   do container: assim, parado, o primeiro slide começa na coluna de conteúdo
+   e só sangra à direita; depois de paginar, os slides anteriores aparecem
+   sangrando à esquerda em vez de serem cortados na borda do grid. */
 .carousel {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-left: var(--gutter);
 }
 
 /* Container de rolagem. Vai do gutter até a borda direita da viewport,
@@ -1369,6 +1372,7 @@ html { scroll-behavior: smooth; }
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x proximity;
+  scroll-padding-left: var(--gutter);
   overscroll-behavior-x: contain;
 }
 
@@ -1387,6 +1391,8 @@ html { scroll-behavior: smooth; }
   align-items: center;
   gap: 24px;
   width: max-content;
+  /* alinha o primeiro slide à coluna de conteúdo e deixa o último respirar */
+  padding-inline: var(--gutter);
 }
 
 .carousel__item {
@@ -1399,7 +1405,11 @@ html { scroll-behavior: smooth; }
   height: 287px;
   object-fit: cover;
   border-radius: 24px;
+  cursor: zoom-in;
 }
+
+/* dots voltam a centralizar na coluna, já que o container agora é full-bleed */
+.carousel__dots { margin-inline: auto; }
 
 /* Carousel_Nav — 48x48 ABSOLUTE, radius 24, shadow 0/4/12 #1A221E @ 10%.
    As duas não são simétricas no Figma (topo 116 vs 120); mantido como está. */
@@ -2054,6 +2064,141 @@ html { scroll-behavior: smooth; }
 .cta-final__photo--liftera {
   width: 624px;
   height: 547px;
+}
+
+/* --------------------------------------------------------------------------
+   Lightbox — abre as fotos do carrossel em tela cheia
+   O markup é criado pelo JS; sem script, os slides seguem como imagens
+   normais e nada quebra.
+   -------------------------------------------------------------------------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(1, 1, 44, .93);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility .3s;
+}
+
+.lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lightbox__figura {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  scale: .96;
+  transition: opacity .3s ease, scale .4s cubic-bezier(.22, 1, .36, 1);
+}
+
+.lightbox.is-open .lightbox__figura {
+  opacity: 1;
+  scale: 1;
+}
+
+.lightbox__img {
+  max-width: min(1120px, 92vw);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+}
+
+.lightbox__legenda {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--c-white-80);
+  text-align: center;
+}
+
+.lightbox__btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  background: var(--c-white-10);
+  box-shadow: inset 0 0 0 1px var(--c-white-30);
+  cursor: pointer;
+  transition: background-color .25s ease, transform .25s ease;
+}
+
+.lightbox__btn:hover {
+  background: var(--c-white-30);
+  transform: scale(1.06);
+}
+
+.lightbox__btn[disabled] {
+  opacity: .3;
+  cursor: default;
+  transform: none;
+}
+
+.lightbox__btn img {
+  width: 20px;
+  height: 20px;
+  /* os chevrons do Figma são #01012C; invertidos ficam brancos no fundo escuro */
+  filter: brightness(0) invert(1);
+}
+
+.lightbox__fechar {
+  top: 24px;
+  right: 24px;
+}
+
+.lightbox__fechar::before,
+.lightbox__fechar::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--c-white);
+}
+
+.lightbox__fechar::before { transform: rotate(45deg); }
+.lightbox__fechar::after  { transform: rotate(-45deg); }
+
+.lightbox__prev { left: 24px; top: 50%; margin-top: -26px; }
+.lightbox__next { right: 24px; top: 50%; margin-top: -26px; }
+
+.lightbox__contador {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  letter-spacing: .5px;
+  color: var(--c-white-80);
+}
+
+body.lightbox-aberto { overflow: hidden; }
+
+@media (max-width: 599px) {
+  .lightbox { padding: 12px; }
+  .lightbox__img { max-height: 70vh; }
+  .lightbox__btn { width: 44px; height: 44px; border-radius: 22px; }
+  .lightbox__prev { left: 10px; margin-top: -22px; }
+  .lightbox__next { right: 10px; margin-top: -22px; }
+  .lightbox__fechar { top: 14px; right: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox,
+  .lightbox__figura,
+  .lightbox__btn { transition: none; }
 }
 
 /* --------------------------------------------------------------------------

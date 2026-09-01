@@ -330,10 +330,114 @@
     vistos.forEach(function (el) { obs.observe(el); });
   }
 
+  /* ------------------------------------------------------------------
+     Lightbox das fotos do carrossel
+
+     O markup é criado aqui, não no HTML: sem JS os slides continuam sendo
+     imagens comuns e nada quebra.
+     ------------------------------------------------------------------ */
+  function initLightbox() {
+    var slides = Array.prototype.slice.call(
+      document.querySelectorAll('.carousel [data-carousel-viewport] .carousel__slide')
+    );
+    if (!slides.length) return;
+
+    var caixa = document.createElement('div');
+    caixa.className = 'lightbox';
+    caixa.setAttribute('role', 'dialog');
+    caixa.setAttribute('aria-modal', 'true');
+    caixa.setAttribute('aria-label', 'Visualização da foto');
+    caixa.hidden = false;
+    caixa.innerHTML =
+      '<figure class="lightbox__figura">' +
+        '<img class="lightbox__img" alt="">' +
+        '<figcaption class="lightbox__legenda"></figcaption>' +
+      '</figure>' +
+      '<button class="lightbox__btn lightbox__fechar" type="button" aria-label="Fechar"></button>' +
+      '<button class="lightbox__btn lightbox__prev" type="button" aria-label="Foto anterior">' +
+        '<img src="assets/icons/icon-chevron-left.svg" alt="" aria-hidden="true">' +
+      '</button>' +
+      '<button class="lightbox__btn lightbox__next" type="button" aria-label="Próxima foto">' +
+        '<img src="assets/icons/icon-chevron-right.svg" alt="" aria-hidden="true">' +
+      '</button>' +
+      '<p class="lightbox__contador"></p>';
+    document.body.appendChild(caixa);
+
+    var img = caixa.querySelector('.lightbox__img');
+    var legenda = caixa.querySelector('.lightbox__legenda');
+    var contador = caixa.querySelector('.lightbox__contador');
+    var btFechar = caixa.querySelector('.lightbox__fechar');
+    var btPrev = caixa.querySelector('.lightbox__prev');
+    var btNext = caixa.querySelector('.lightbox__next');
+
+    var atual = 0;
+    var origem = null;
+
+    function mostrar(i) {
+      atual = Math.max(0, Math.min(i, slides.length - 1));
+      var s = slides[atual];
+      img.src = s.currentSrc || s.src;
+      img.alt = s.alt || '';
+      legenda.textContent = s.alt || '';
+      legenda.hidden = !s.alt;
+      contador.textContent = (atual + 1) + ' / ' + slides.length;
+      btPrev.disabled = atual === 0;
+      btNext.disabled = atual === slides.length - 1;
+    }
+
+    function abrir(i, gatilho) {
+      origem = gatilho || null;
+      mostrar(i);
+      caixa.classList.add('is-open');
+      document.body.classList.add('lightbox-aberto');
+      btFechar.focus({ preventScroll: true });
+    }
+
+    function fechar() {
+      caixa.classList.remove('is-open');
+      document.body.classList.remove('lightbox-aberto');
+      if (origem) { origem.focus({ preventScroll: true }); origem = null; }
+    }
+
+    slides.forEach(function (s, i) {
+      s.setAttribute('role', 'button');
+      s.setAttribute('tabindex', '0');
+      s.setAttribute('aria-label', 'Ampliar: ' + (s.alt || 'foto ' + (i + 1)));
+      s.addEventListener('click', function () { abrir(i, s); });
+      s.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(i, s); }
+      });
+    });
+
+    btFechar.addEventListener('click', fechar);
+    btPrev.addEventListener('click', function () { mostrar(atual - 1); });
+    btNext.addEventListener('click', function () { mostrar(atual + 1); });
+
+    // clique no fundo fecha; clique na figura não
+    caixa.addEventListener('click', function (e) {
+      if (e.target === caixa) fechar();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!caixa.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { fechar(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); mostrar(atual + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); mostrar(atual - 1); }
+      // mantém o foco dentro do diálogo
+      if (e.key === 'Tab') {
+        var foco = [btFechar, btPrev, btNext].filter(function (b) { return !b.disabled; });
+        var i = foco.indexOf(document.activeElement);
+        e.preventDefault();
+        foco[(i + (e.shiftKey ? -1 : 1) + foco.length) % foco.length].focus();
+      }
+    });
+  }
+
   function iniciar() {
     initHeader();
     initMenu();
     initReveal();
+    initLightbox();
     var lista = document.querySelectorAll('[data-carousel]');
     for (var i = 0; i < lista.length; i++) initCarousel(lista[i]);
   }
