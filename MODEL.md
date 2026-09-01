@@ -185,7 +185,28 @@ Conteúdo único de cada LP — meta box nativo no editor da página, sem depend
 | Updates do tema | **Git Updater** | `GitHub Theme URI` no `style.css` desde o início. |
 | Seeder | **One-click** | Importa os assets do Figma para a Mídia, cria os CPTs com o conteúdo real, cria as páginas e configura `show_on_front`. |
 | Operador do admin | Cliente leigo | Meta boxes com labels em português e ordem por `menu_order`. |
-| Mobile | **Adiado** | Frames mobile do Figma estão vazios (375×800, zero filhos). Desktop-only por ora, por decisão do usuário. Mobile entra depois via skill separada, quando o designer entregar os comps. |
+| Mobile | **Fluido inferido** | Os frames mobile do Figma continuam vazios (375×800, zero filhos). O responsivo foi inferido, não traduzido de comp — **precisa ser reconferido quando o designer entregar o mobile**. |
+
+### Breakpoints
+
+| Faixa | O que muda |
+|-------|-----------|
+| ≥ 1200px | Desktop como no Figma, conteúdo travado em 1216 |
+| ≤ 1199px | Larguras fixas em px viram fluidas; imagens passam a `aspect-ratio`; as imagens absolutas dos callouts são ocultadas (posicionadas em px, colidiriam com o texto) |
+| ≤ 1023px | Menu vira hambúrguer (`.nav-toggle` + `is-open`, com Escape e fechamento ao clicar num item) |
+| ≤ 899px | Seções de duas colunas empilham; grades caem para 2 colunas; sticky da foto desliga; linha conectora da timeline some |
+| ≤ 599px | Uma coluna; CTAs em largura total; escala tipográfica reduzida; setas de carrossel somem (fica arrasto + dots) |
+
+Efeito colateral bom: no mobile os 3 depoimentos passam a transbordar (320px cada
+contra ~329px de viewport), então **o carrossel de depoimentos finalmente pagina** —
+3 dots, arrasto e clique funcionando.
+
+Duas armadilhas que apareceram e estão resolvidas, mas vale saber:
+
+1. `.about__media` precisa continuar `position: relative` quando o sticky desliga. Como
+   `static`, o badge do médico perdia o bloco de contenção e ia parar em cima do hero.
+2. `.callout--hug .callout__main` tem especificidade maior que a regra fluida geral e
+   mantinha a largura de conteúdo, estourando a viewport a 1024px na LP2.
 
 ---
 

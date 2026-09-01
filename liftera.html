@@ -21,7 +21,7 @@
     <img src="assets/icons/logo-dr-romulo.svg" alt="Dr. Rômulo Malaquias" width="174" height="32">
   </a>
 
-  <nav class="site-nav" aria-label="Navegação principal">
+  <nav class="site-nav" id="menu-principal" aria-label="Navegação principal">
     <ul>
       <li><a href="#sinais-de-alerta">Sinais de alerta</a></li>
       <!-- Nesta LP o rótulo do Figma é o correto e aponta para a própria
@@ -39,6 +39,10 @@
     <img class="btn__icon" src="assets/icons/icon-whatsapp.svg" alt="" aria-hidden="true" width="16" height="16">
     Agendar avaliação
   </a>
+
+  <button class="nav-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-principal" data-nav-toggle>
+    <span class="nav-toggle__bars" aria-hidden="true"></span>
+  </button>
 </header>
 
 <main>
@@ -783,7 +787,7 @@
           <span>2. Quais são os cuidados depois do procedimento?</span>
           <img class="faq-item__chevron" src="assets/icons/icon-chevron-down.svg" alt="" aria-hidden="true" width="20" height="20">
         </summary>
-        <p class="faq-item__a">O Liftera não exige afastamento das atividades: você sai do consultório e retoma sua rotina no mesmo dia. Pode haver vermelhidão leve, sensibilidade ao toque ou discreto inchaço nas primeiras horas ou dias. As orientações habituais envolvem fotoproteção rigorosa, hidratação da pele e evitar calor intenso e atividade física de alta intensidade nas primeiras 24 a 48 horas. Você recebe as orientações por escrito, individualizadas para as áreas tratadas.</p>
+        <p class="faq-item__a">O Liftera não exige afastamento das atividades: você sai do consultório e retoma sua rotina no mesmo dia. Pode haver vermelhidão leve, sensibilidade ao toque ou discreto inchaço nas primeiras horas ou dias. As orientações habituais envolvem fotoproteção rigorosa, hidratação da pele e evitar calor intenso e atividade física de alta intensidade nas primeiras 24 a 48 horas.</p>
       </details>
 
       <details class="faq-item">

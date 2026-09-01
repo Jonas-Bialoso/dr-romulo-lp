@@ -205,7 +205,45 @@
     recalcular();
   }
 
+  /* ------------------------------------------------------------------
+     Menu mobile — o nav só cabe ao lado do logo e do CTA acima de 1024px
+     ------------------------------------------------------------------ */
+  function initMenu() {
+    var botao = document.querySelector('[data-nav-toggle]');
+    var header = document.querySelector('.site-header');
+    var nav = document.getElementById('menu-principal');
+    if (!botao || !header || !nav) return;
+
+    function fechar() {
+      header.classList.remove('is-open');
+      botao.setAttribute('aria-expanded', 'false');
+      botao.setAttribute('aria-label', 'Abrir menu');
+    }
+
+    botao.addEventListener('click', function () {
+      var aberto = header.classList.toggle('is-open');
+      botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+    });
+
+    // clicar num item leva à seção e fecha o menu
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) fechar();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') fechar();
+    });
+
+    // ao voltar para desktop o menu não pode ficar preso aberto
+    var mq = window.matchMedia('(min-width: 1024px)');
+    var aoMudar = function (e) { if (e.matches) fechar(); };
+    if (mq.addEventListener) mq.addEventListener('change', aoMudar);
+    else mq.addListener(aoMudar);
+  }
+
   function iniciar() {
+    initMenu();
     var lista = document.querySelectorAll('[data-carousel]');
     for (var i = 0; i < lista.length; i++) initCarousel(lista[i]);
   }

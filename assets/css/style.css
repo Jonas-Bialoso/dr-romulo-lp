@@ -1860,6 +1860,44 @@ ul, ol { padding: 0; list-style: none; }
 }
 
 /* --------------------------------------------------------------------------
+   Botão do menu mobile — só existe abaixo de 1024
+   -------------------------------------------------------------------------- */
+.nav-toggle {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--c-primary-10);
+}
+
+.nav-toggle__bars,
+.nav-toggle__bars::before,
+.nav-toggle__bars::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--c-primary);
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.nav-toggle__bars::before,
+.nav-toggle__bars::after {
+  content: "";
+  position: relative;
+}
+
+.nav-toggle__bars::before { top: -6px; }
+.nav-toggle__bars::after  { top: 4px; }
+
+.site-header.is-open .nav-toggle__bars { background: transparent; }
+.site-header.is-open .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
+.site-header.is-open .nav-toggle__bars::after  { transform: translateY(-4px) rotate(-45deg); }
+
+/* --------------------------------------------------------------------------
    Rodapé  —  node 7075:541
    1440x363 · VERTICAL · pad 80/112/32/112 · gap 32 · bg #000014
    -------------------------------------------------------------------------- */
@@ -1948,4 +1986,307 @@ ul, ol { padding: 0; list-style: none; }
   line-height: 14.5px;
   font-weight: 400;
   color: var(--c-cream);
+}
+
+/* ==========================================================================
+   RESPONSIVO
+
+   O Figma NÃO tem frames mobile — os dois existentes (375x800) estão vazios.
+   Portanto isto é adaptação fluida inferida, não tradução de comp. Quando o
+   designer entregar o mobile, esta seção precisa ser reconferida contra ele.
+
+   Estratégia: até 1199 as larguras fixas viram fluidas; até 1023 o menu vira
+   hambúrguer; até 899 as seções de duas colunas empilham e as grades caem
+   para 2; até 599 tudo vira uma coluna.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   ≤ 1199 — solta as larguras fixas
+   -------------------------------------------------------------------------- */
+@media (max-width: 1199px) {
+
+  /* Blocos de texto que tinham largura travada em px */
+  .section-title,
+  .section-lead,
+  .callout__main,
+  .callout__body,
+  .callout__text--557,
+  .diferencial__head-text,
+  .diferencial__head-body,
+  .about__left,
+  .cta-final__content,
+  .cta-final__content--687,
+  .site-footer__disclaimer {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  .section-lead--780,
+  .section-lead--full,
+  .cta-band__content,
+  .cta-band__text,
+  .trajetoria {
+    width: 100%;
+  }
+
+  /* .callout--hug .callout__main tem especificidade maior que a regra acima
+     e mantinha a largura de conteúdo, estourando a viewport a 1024. */
+  .callout--hug .callout__main,
+  .callout--fill .callout__main--fill,
+  .callout--evidencia .callout__body {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Mídias com altura fixa passam a manter proporção */
+  .hero__media,
+  .about__media {
+    flex: 0 1 568px;
+    width: auto;
+    min-width: 0;
+  }
+
+  .hero__image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 568 / 557;
+  }
+
+  .about__photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 580 / 628;
+  }
+
+  .split-media__figure,
+  .split-media__figure--liftera {
+    flex: 1 1 0;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    aspect-ratio: 560 / 921;
+  }
+
+  .split-media--liftera .split-media__figure--liftera { aspect-ratio: 568 / 802; }
+
+  /* As imagens absolutas dos callouts são posicionadas em px absolutos e
+     colidem com o texto assim que a coluna encolhe. */
+  .callout__image { display: none; }
+
+  .cta-final__photo {
+    position: static;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    border-radius: 16px;
+    align-self: flex-end;
+  }
+
+  /* Carrossel: seta direita passa a se ancorar na borda */
+  .carousel > .carousel__nav--next,
+  .depoimentos__carousel > .carousel__nav--next {
+    left: auto;
+    right: 8px;
+  }
+
+  .carousel > .carousel__nav--prev { left: 8px; }
+  .depoimentos__carousel > .carousel__nav--prev { left: -12px; }
+
+  .carousel__dots { width: 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   ≤ 1023 — menu vira hambúrguer
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+
+  .site-header { position: relative; flex-wrap: wrap; }
+
+  .nav-toggle { display: flex; }
+
+  .site-nav {
+    display: none;
+    order: 3;
+    flex: 1 0 100%;
+    padding-top: 18px;
+  }
+
+  .site-header.is-open .site-nav { display: block; }
+
+  .site-nav ul {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .site-nav a {
+    padding: 14px 0;
+    font-size: 16px;
+    line-height: 24px;
+    box-shadow: inset 0 -1px 0 var(--c-hairline);
+  }
+
+  /* logo, CTA e botão ficam na ordem do DOM (order 0); só o nav vai para
+     baixo, ocupando a linha inteira quando aberto. */
+  .btn--header {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ≤ 899 — seções de duas colunas empilham, grades caem para 2
+   -------------------------------------------------------------------------- */
+@media (max-width: 899px) {
+
+  :root { --section-py: 56px; }
+
+  .hero__inner,
+  .split-media,
+  .about__inner,
+  .faq__inner,
+  .section-header__split,
+  .consultorio__head,
+  .diferencial__head,
+  .diferencial__head--split,
+  .depoimentos__head,
+  .callout,
+  .callout--fill,
+  .cta-final__card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* o selo do Google não encolhe e esmagava o título ao lado */
+  .depoimentos__head { gap: 12px; }
+  .depoimentos__verified { flex: none; }
+
+  .hero__inner,
+  .split-media,
+  .about__inner,
+  .faq__inner { gap: 40px; }
+
+  .section-header__split { gap: 16px; }
+
+  .callout,
+  .callout--fill,
+  .callout--hug { gap: 24px; }
+
+  /* Sticky não faz sentido quando as colunas empilham — mas tem de continuar
+     `relative`: o badge do médico é absoluto e, sem bloco de contenção aqui,
+     escapa da seção e vai parar em cima do hero. */
+  .about__media {
+    position: relative;
+    top: auto;
+    flex: none;
+    padding-bottom: 0;
+  }
+
+  .about__left { flex: none; }
+
+  .faq__aside { padding-bottom: 0; }
+
+  .hero__media { flex: none; }
+
+  /* O badge do hero e o do médico transbordam à esquerda em -28px */
+  .tech-badge { left: 12px; }
+  .tech-badge--doctor { left: 12px; bottom: 24px; }
+
+  .alert-grid,
+  .foto-grid,
+  .pilares__grid,
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .alert-card,
+  .pilar-card { height: auto; min-height: 210px; }
+
+  /* a linha conectora da timeline só faz sentido em fila única */
+  .timeline__line { display: none; }
+
+  .cta-final__photo { align-self: center; }
+
+  .cta-band__title { font-size: 36px; line-height: 43.2px; }
+  .cta-final__title { font-size: 36px; line-height: 43.2px; }
+
+  .hero__heading,
+  .hero--liftera .hero__heading { font-size: 36px; line-height: 43.2px; }
+
+  .split-media__title { font-size: 28px; line-height: 34px; }
+
+  .site-footer__cols { flex-wrap: wrap; gap: 32px 48px; }
+  .site-footer__col { flex: 1 1 200px; }
+  .site-footer__base { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+
+/* --------------------------------------------------------------------------
+   ≤ 599 — uma coluna
+   -------------------------------------------------------------------------- */
+@media (max-width: 599px) {
+
+  :root { --section-py: 44px; }
+
+  .alert-grid,
+  .foto-grid,
+  .pilares__grid,
+  .timeline {
+    grid-template-columns: 1fr;
+  }
+
+  .foto-card { height: 420px; }
+
+  /* CTAs ocupam a largura toda: alvo de toque decente */
+  .hero__actions,
+  .cta-band__actions,
+  .cta-final__actions { align-items: stretch; }
+
+  .hero__actions { flex-direction: column; align-items: stretch; gap: 20px; }
+
+  .btn--primary,
+  .btn--light { width: 100%; }
+
+  .btn--inline { align-self: stretch; width: 100%; }
+
+  .hero__microcopy { flex: none; }
+
+  .hero__heading,
+  .hero--liftera .hero__heading { font-size: 30px; line-height: 36px; }
+
+  .section-title,
+  .section-heading,
+  .split-media__title { font-size: 26px; line-height: 32px; }
+
+  .cta-band__title,
+  .cta-final__title { font-size: 28px; line-height: 34px; }
+
+  .cta-band { padding-block: 56px; }
+
+  .cta-final__card { padding: 32px 24px; }
+
+  .callout,
+  .callout--evidencia,
+  .callout--hug,
+  .callout--fill { padding: 24px; }
+
+  /* Carrossel de fotos: slide acompanha a viewport */
+  .carousel__item { flex: 0 0 min(300px, 78vw); }
+  .carousel__slide { width: 100%; height: auto; aspect-ratio: 389 / 287; }
+
+  /* Depoimentos: um card por vez — aqui o carrossel finalmente pagina */
+  .depoimento { flex: 0 0 min(320px, 82vw); }
+
+  /* No mobile as setas ficariam sobre o conteúdo do card. Ficam o arrasto
+     nativo e os dots, que são clicáveis — padrão de carrossel em toque. */
+  .carousel__nav { display: none; }
+
+  .site-footer__col { flex: 1 1 100%; }
+
+  .diferencial__head--split .diferencial__head-text { gap: 16px; }
+
+  .trajetoria__content { padding-bottom: 16px; }
 }
