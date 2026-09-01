@@ -98,84 +98,106 @@ post types e quebraria na terceira LP.
 
 ## 2. Custom Post Types
 
-Todos com `show_in_rest: true`, `supports: title, editor, thumbnail, page-attributes`
-(o `menu_order` controla a ordem e alimenta a numeração 01…06 exibida nos cards).
+Registrados em `inc/cpts.php` por uma tabela única (`drm_tipos()`), todos com
+`show_in_rest: true` e `supports: title, editor, thumbnail, page-attributes`.
+O `menu_order` controla a ordem e alimenta a numeração 01…06 exibida nos cards.
 
-| CPT | Slug | Onde aparece | Campos | Campanha? |
-|-----|------|--------------|--------|-----------|
-| Sinais de alerta | `drm_sinal` | Seção "Sinais de alerta" | título, descrição (`post_content`), ordem | sim |
-| Evidências / Benefícios | `drm_beneficio` | LP1 "O que o exame permite identificar" · LP2 "O que esperar do tratamento" | título, descrição, ordem | sim |
-| Etapas do atendimento | `drm_etapa` | "Como funciona o seu atendimento" | título, descrição, ordem | sim |
-| Pilares da consulta | `drm_pilar` | Seção "Diferencial" | título, descrição, ordem | sim |
-| Perguntas frequentes | `drm_faq` | Accordion FAQ | pergunta (título), resposta, ordem | sim |
-| Depoimentos | `drm_depoimento` | Seção depoimentos | citação, iniciais, mês/ano, verificada (bool) | não — compartilhado |
-| Trajetória | `drm_formacao` | "Trajetória acadêmica e profissional" | título, instituição, ordem | não — compartilhado |
-| Fotos do consultório | `drm_foto` | Carousel | imagem (featured), legenda, ordem | não — compartilhado |
+| CPT | Slug | Onde aparece | Campanha? |
+|-----|------|--------------|-----------|
+| Sinais de alerta | `drm_sinal` | Seção "Sinais de alerta" (cards de ícone na LP1, cards de foto na LP2) | sim |
+| Benefícios / Objetivos | `drm_beneficio` | LP1 "O que o exame permite identificar" (lista numerada) · LP2 "O que esperar do tratamento" (grade de fotos) | sim |
+| Mecanismo de ação | `drm_mecanismo` | LP2 "O que é o Liftera" — lista numerada que explica o aparelho | sim |
+| Etapas do atendimento | `drm_etapa` | "Como funciona o seu atendimento" (timeline) | sim |
+| Pilares da consulta | `drm_pilar` | Seção "Diferencial" | sim |
+| Perguntas frequentes | `drm_faq` | Accordion | sim |
+| Depoimentos | `drm_depoimento` | Carrossel de depoimentos | não — compartilhado |
+| Trajetória | `drm_formacao` | "Trajetória acadêmica e profissional" | não — compartilhado |
+| Fotos do consultório | `drm_foto` | Carrossel + lightbox | não — compartilhado |
 
-**Contagem no Figma (LP1):** 6 sinais · 4 evidências · 4 etapas · 4 pilares · 8 FAQs ·
-3 depoimentos · 7 itens de trajetória.
+Metas de item, gravadas pelo seeder e editáveis no admin: `drm_icone` (nome do SVG em
+`assets/icons/`), `drm_badge_escuro` (badge "Verificado" em variante escura) e `drm_data`
+(mês/ano do depoimento, instituição da formação).
+
+**Contagem real do conteúdo importado:** 6+6 sinais · 4+6 benefícios · 3 mecanismos ·
+4+4 etapas · 4+4 pilares · 8+8 FAQs · 3 depoimentos · 7 formações · 8 fotos.
 
 ### Taxonomia
 
-`drm_campanha` — hierárquica, aplicada a `drm_sinal`, `drm_beneficio`, `drm_etapa`,
-`drm_pilar`, `drm_faq`. Termos iniciais: **`preenchimento`**, **`liftera`**.
+`drm_campanha` — hierárquica, aplicada a `drm_sinal`, `drm_beneficio`, `drm_mecanismo`,
+`drm_etapa`, `drm_pilar` e `drm_faq`. Termos: **`preenchimento`** e **`liftera`**.
 
-Cada template de LP consulta seu CPT filtrando por esse termo. Adicionar uma LP nova = criar
-um termo, não um post type.
+Cada template lê `drm_campanha_slug` do meta box da página e filtra por esse termo.
+Adicionar uma LP nova = criar um termo, não um post type.
 
 ---
 
 ## 3. Customizer (`theme_mod`) — global, vale para as duas LPs
 
-| Seção | Setting | Valor no Figma |
-|-------|---------|----------------|
+Definido em `inc/customizer.php` por `drm_campos_customizer()`, que também carrega os
+defaults lidos por `drm_opt()` — não há default duplicado em dois lugares.
+
+| Seção | Setting | Valor de origem |
+|-------|---------|-----------------|
 | Contato | `drm_whatsapp` | `(11) 94912-8259` |
 | Contato | `drm_whatsapp_msg` | texto pré-preenchido do link `wa.me` |
+| Contato | `drm_telefone` | telefone do consultório |
 | Contato | `drm_email` | `dr.romulo.contato@gmail.com` |
 | Contato | `drm_instagram` | `@romulo.dermato` |
 | Localização | `drm_clinica` | EviDenS Clinic |
 | Localização | `drm_endereco` | Rua Dr. Diogo de Faria, 1087 — conj. 901-904 |
 | Localização | `drm_bairro` | Vila Clementino, São Paulo/SP |
-| Localização | `drm_maps_url` | link do Google Maps |
+| Localização | `drm_maps` | link do Google Maps |
 | Responsável técnico | `drm_medico_nome` | Dr. Rômulo Malaquias |
 | Responsável técnico | `drm_crm` | **`CRM-SP 00000`** ⚠️ |
 | Responsável técnico | `drm_rqe` | **`RQE 00000`** ⚠️ |
-| Responsável técnico | `drm_diretor_tecnico` | **placeholder** ⚠️ |
+| Responsável técnico | `drm_diretor` | **placeholder** ⚠️ |
 | Legal | `drm_disclaimer` | texto informativo do rodapé |
-| Identidade | `drm_logo` | upload |
+| Legal | `drm_privacidade` / `drm_termos` | URLs das páginas legais |
+| Identidade | `drm_logo_branco` | upload do logo do header |
 
-> ⚠️ **Pendência bloqueante para publicação.** CRM, RQE e diretor técnico estão como `00000` /
-> "Nome completo do médico" no Figma. A Resolução CFM 1.974/2011 exige nome, CRM e RQE reais em
-> publicidade médica. O tema deve renderizar esses campos a partir do Customizer, e os valores
-> reais precisam ser preenchidos antes do site ir ao ar. Não inventar valores.
+> ⚠️ **Pendência bloqueante para publicação.** CRM, RQE e diretor técnico saem como `00000` /
+> "Diretor técnico da clínica (nome + CRM)". A Resolução CFM 1.974/2011 exige nome, CRM e RQE
+> reais em publicidade médica. **Não inventar valores.** Enquanto forem placeholder,
+> `drm_aviso_crm()` mostra um `notice-error` em todas as telas do admin, com link direto para
+> a seção do Customizer. O aviso some sozinho quando os três forem preenchidos.
 
 ---
 
 ## 4. Meta fields por página (LP)
 
-Conteúdo único de cada LP — meta box nativo no editor da página, sem dependência de plugin.
+Meta box nativo (`inc/meta-boxes.php`), sem ACF. Um bloco por seção, labels em português.
+`drm_meta()` lê com fallback, então uma LP nova sem os campos preenchidos não quebra.
 
 | Bloco | Campos |
 |-------|--------|
-| Hero | `eyebrow`, `headline`, `subtitulo`, `paragrafo_apoio`, `cta_label`, `microcopy`, `imagem`, `badge_titulo`, `badge_texto` |
-| Intro de seção (×5) | `eyebrow`, `titulo`, `descricao` — um conjunto por seção de listagem |
-| Nota de rodapé de seção | `nota` (ex.: alerta de urgência médica em Sinais de alerta) |
-| CTA intermediária | `eyebrow`, `headline`, `texto`, `botao_label`, `microcopy` |
-| CTA final | `headline`, `texto`, `botao_label`, `microcopy` |
-| Sobre o médico | `bio`, `foto`, `nome_exibido`, `cargo` |
+| Campanha | `drm_campanha_slug` |
+| Hero | `drm_hero_eyebrow`, `drm_hero_titulo`, `drm_hero_titulo_px`, `drm_hero_lead`, `drm_hero_apoio`, `drm_hero_cta`, `drm_hero_micro`, `drm_hero_badge_tit`, `drm_hero_badge_txt` |
+| Sinais | `drm_sinais_eyebrow`, `drm_sinais_titulo`, `drm_sinais_lead`, `drm_sinais_callout`, `drm_sinais_layout` (`icone` \| `foto`) |
+| Benefícios | `drm_benef_eyebrow`, `drm_benef_titulo`, `drm_benef_intro`, `drm_benef_rotulo`, `drm_benef_lead`, `drm_benef_callout`, `drm_benef_layout`, e `drm_benef_eyebrow_2` / `drm_benef_titulo_2` para a segunda seção de benefícios da LP2 |
+| Etapas | `drm_etapas_eyebrow`, `drm_etapas_titulo`, `drm_etapas_lead` |
+| Diferencial | `drm_dif_eyebrow`, `drm_dif_titulo`, `drm_dif_texto`, `drm_dif_rotulo` |
+| CTA do meio | `drm_ctam_eyebrow`, `drm_ctam_titulo`, `drm_ctam_texto`, `drm_ctam_botao`, `drm_ctam_micro` |
+| CTA final | `drm_ctaf_titulo`, `drm_ctaf_texto`, `drm_ctaf_botao`, `drm_ctaf_micro` |
+| FAQ | `drm_faq_eyebrow`, `drm_faq_titulo`, `drm_faq_botao` |
+
+`drm_hero_titulo_px` guarda o tamanho do título em px porque as duas LPs usam corpos
+diferentes no mesmo componente (56 na LP1, 52 na LP2) — é o único caso em que o conteúdo
+carrega uma medida.
+
+**Total gravado pelo seeder:** 37 metas na home, 41 na LP2, nenhuma vazia.
 
 ---
 
 ## 5. Páginas e templates
 
-| Página | Template | Conteúdo |
-|--------|----------|----------|
-| Home → LP Preenchimento | `front-page.php` | LP1 (`7075:28`) |
-| LP Liftera | `page-liftera.php` | LP2 (`7002:24`) |
-| Política de Privacidade | `page.php` | `post_content` rico |
-| Termos de Uso | `page.php` | `post_content` rico |
+| Página | Slug | Template | Conteúdo |
+|--------|------|----------|----------|
+| Home → LP Preenchimento | `home` | `front-page.php` | LP1 (`7075:28`) |
+| LP Liftera | `liftera` | `page-liftera.php` (Template Name: LP Liftera) | LP2 (`7002:24`) |
+| O tratamento | `o-tratamento` / `o-tratamento-liftera` | — | páginas-suporte, servem só para carregar a imagem destacada da seção de duas colunas |
 
----
+`index.php` existe como fallback obrigatório do WordPress e apenas redireciona o loop
+para o template certo.
 
 ## 6. Decisões técnicas
 
@@ -268,3 +290,69 @@ frequência: `o-que-e-o-liftera` contém "Como funciona o seu atendimento", os 8
 carrossel se chamam `Clinic_Photo_4` mas são 8 imagens distintas, e os dois textos da
 coluna Localização do rodapé têm os nomes trocados entre si. Sempre conferir `characters`
 e `imageRef`, nunca o nome do nó.
+
+---
+
+## 9. O tema WordPress
+
+Fica em `theme/dr-romulo/`. É o mesmo HTML e o mesmo CSS das LPs estáticas — o CSS não foi
+reescrito, foi copiado. Quem muda é só a origem do conteúdo: o que estava escrito no HTML
+agora vem de CPT, meta ou Customizer.
+
+```
+theme/dr-romulo/
+├── style.css              cabeçalho do WP + GitHub Theme URI (Git Updater)
+├── functions.php          constantes, setup, enfileiramento com cache-bust por filemtime
+├── header.php             menu, logo, CTA — âncoras resolvidas por página
+├── footer.php             contato, endereço, responsável técnico, disclaimer
+├── index.php              fallback obrigatório
+├── front-page.php         LP1
+├── page-liftera.php       LP2 (Template Name: LP Liftera)
+├── inc/
+│   ├── cpts.php           9 CPTs + taxonomia, tabela única
+│   ├── customizer.php     5 seções; é também a fonte dos defaults
+│   ├── meta-boxes.php     meta box nativo, um bloco por seção
+│   ├── helpers.php        drm_opt, drm_itens, drm_meta, drm_botao, drm_icone, drm_imagem…
+│   ├── secoes.php         as 14 funções de render — o coração do tema
+│   ├── seeder.php         Ferramentas → Popular site
+│   └── dados-seed.php     conteúdo das duas LPs, gerado do HTML estático
+└── assets/                css, js, images, icons — cópia dos estáticos (62 arquivos)
+```
+
+### O seeder
+
+`Ferramentas → Popular site`, um clique. Cria as duas campanhas, importa as imagens de
+`assets/images/` para a Mídia, cadastra todos os itens dos CPTs, cria as páginas com os
+meta fields preenchidos e aponta `show_on_front` para a home.
+
+- **Idempotente nas imagens e nas páginas:** cada anexo importado ganha `_drm_origem` com o
+  nome do arquivo, e `drm_achar_anexo()` reaproveita em vez de duplicar; páginas existentes
+  são detectadas por slug e puladas.
+- **Não é idempotente nos itens dos CPTs.** Rodar duas vezes cria os posts de novo. A tela
+  avisa e exige confirmação depois da primeira execução.
+
+`inc/dados-seed.php` é **gerado**, não escrito à mão — `scratchpad/gerar-seed.mjs` lê o
+`index.html` e o `liftera.html` e extrai o conteúdo. Se o texto das LPs mudar, rode o
+gerador de novo em vez de editar o PHP.
+
+### Onde o conteúdo mora
+
+| Tipo de conteúdo | Onde | Exemplo |
+|---|---|---|
+| Repetível e listado | CPT + `menu_order` | os 6 sinais de alerta |
+| Único da página | meta box da página | o headline do hero |
+| Igual nas duas LPs | Customizer | WhatsApp, endereço, CRM |
+| Foto do médico, fundos de CTA | `assets/images/` do tema | não é conteúdo editável |
+| Fotos do consultório e dos cards | Mídia, via imagem destacada | trocáveis pelo cliente |
+
+### O que ainda não foi verificado
+
+O PHP **nunca rodou contra um WordPress real** — não existe runtime PHP nesta máquina.
+O que foi verificado é estrutural (`scratchpad/checar-php.mjs`): chaves e parênteses
+balanceados com consciência de string e comentário, todas as 44 funções `drm_*` chamadas
+têm definição, e todos os `require_once` do `functions.php` resolvem. Isso pega erro de
+digitação e função ausente; **não pega** erro de runtime do WP — nome de hook errado,
+argumento em ordem trocada, retorno inesperado de `get_posts()`.
+
+Instalar em um WordPress de teste, rodar o seeder e comparar contra as LPs estáticas é o
+próximo passo real.

@@ -1,0 +1,24 @@
+/*
+Theme Name:  Dr. Rômulo Malaquias
+Theme URI:   https://github.com/Jonas-Bialoso/dr-romulo-lp
+Description: Tema das landing pages do Dr. Rômulo Malaquias (dermatologia), implementado a partir do Figma. Duas LPs — retirada de preenchimento guiada por ultrassom e Liftera — sobre os mesmos CPTs, segmentadas pela taxonomia de campanha.
+Author:      Studio Artemis
+Author URI:  https://studioartemis.com.br
+Version:     1.0.0
+License:     GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: dr-romulo
+Requires at least: 6.0
+Requires PHP: 7.4
+Tags: landing-page, one-page, custom-colors
+
+GitHub Theme URI: Jonas-Bialoso/dr-romulo-lp
+Primary Branch:   main
+*/
+
+/*
+   O CSS de verdade está em assets/css/style.css, enfileirado pelo
+   functions.php. Este arquivo existe porque o WordPress exige um style.css
+   na raiz do tema com o cabeçalho acima — e é aqui que o Git Updater lê
+   o GitHub Theme URI para oferecer atualização pelo repositório.
+*/

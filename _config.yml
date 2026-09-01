@@ -1,0 +1,8 @@
+# GitHub Pages publica a raiz do repositório. As LPs estáticas ficam aqui, mas
+# o tema WordPress e as ferramentas de desenvolvimento não são para servir —
+# sem isso o Pages entregaria os .php como download de texto puro.
+exclude:
+  - theme/
+  - dev-server.js
+  - MODEL.md
+  - .claude/
