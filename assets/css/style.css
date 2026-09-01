@@ -1,0 +1,1951 @@
+/* ==========================================================================
+   Dr. Rômulo Malaquias — Dermatologia
+   LP1: Retirada de preenchimento guiada por ultrassom
+   Figma: OFVtBmgdhjLf16MFpf9LOp · frame 7075:28 (1440x9443)
+
+   Todos os valores vêm da API do Figma. Nada presumido.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tokens (Fase 0.5) — extraídos do frame 7075:28
+   -------------------------------------------------------------------------- */
+:root {
+  /* Estruturais */
+  --frame-w: 1440px;                            /* largura do frame raiz */
+  --content-w: 1216px;                          /* filho interno w=1216 em x=112 */
+  --section-px: clamp(24px, 7.78vw, 112px);     /* padding 112 / 1440 = 7.78vw */
+  --content-gap: 80px;                          /* itemSpacing padrão das seções */
+  --section-py: 80px;                           /* padding vertical padrão */
+
+  /* Respiro lateral efetivo. Abaixo de 1440 vale o --section-px fluido;
+     acima, cresce para manter o conteúdo travado em 1216 e centralizado.
+     Sem isso, header, rodapé e carrosséis grudam na borda enquanto o resto
+     da página centraliza — foi exatamente o bug do menu desalinhado. */
+  --gutter: max(var(--section-px), calc((100% - var(--content-w)) / 2));
+
+  /* Cores */
+  --c-primary: #01012C;                         /* texto, fundos escuros — 107 usos */
+  --c-cream: #FAF8F5;                           /* fundo das seções */
+  --c-white: #FFFFFF;
+  --c-amber: #FFB000;                           /* acento / destaque */
+  --c-body: #5D6066;                            /* texto corrido */
+  --c-ink: #1A221E;
+  --c-border: #D9D4CC;
+  --c-footer: #000014;
+  --c-mint: #C3FF9E;                            /* microcopy sobre fundo escuro */
+  --c-green: #478024;                           /* selo de avaliações verificadas */
+  --c-hairline: rgba(96, 106, 100, .10);        /* #606A64 @ 10% — divisores */
+  --c-primary-10: rgba(1, 1, 44, .10);
+  --c-primary-05: rgba(1, 1, 44, .05);
+  --c-primary-90: rgba(1, 1, 44, .90);
+
+  /* Branco com alfa — usado sobre os fundos escuros (rodapé e CTAs) */
+  --c-white-10: rgba(255, 255, 255, .10);
+  --c-white-30: rgba(255, 255, 255, .30);
+  --c-white-80: rgba(255, 255, 255, .80);
+  --c-white-90: rgba(255, 255, 255, .90);
+
+  /* Sombras */
+  --shadow-card: 0 8px 24px rgba(30, 36, 33, .1);   /* badges sobre foto */
+  --shadow-nav: 0 4px 12px rgba(26, 34, 33, .1);    /* setas de carrossel */
+
+  /* Tipografia */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--c-primary);
+  background: var(--c-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+svg { display: block; max-width: 100%; }
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+h1, h2, h3, h4, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+
+/* O UA aplica display:none em [hidden], mas qualquer regra nossa com display
+   explícito ganha por especificidade — foi o que deixava as setas do carrossel
+   visíveis mesmo escondidas pelo JS. */
+[hidden] { display: none !important; }
+
+:focus-visible {
+  outline: 2px solid var(--c-amber);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Utilitários de layout
+   -------------------------------------------------------------------------- */
+/* Seção full-bleed com respiro lateral fluido */
+.section {
+  padding: var(--section-py) var(--gutter);
+}
+
+.section--cream { background: var(--c-cream); }
+
+/* Trava o conteúdo em 1216px: acima de 1440 o respiro lateral satura em 112px
+   e sem isso o layout esticaria indefinidamente. */
+.section__inner {
+  width: 100%;
+  max-width: var(--content-w);
+  margin-inline: auto;
+}
+
+.stack-80,
+.stack-56 {
+  display: flex;
+  flex-direction: column;
+}
+
+.stack-80 { gap: 80px; }
+.stack-56 { gap: 56px; }
+
+/* --------------------------------------------------------------------------
+   Botões
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.btn:hover { opacity: .88; }
+.btn:active { transform: translateY(1px); }
+
+.btn__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+/* Variante do header — pad 14/20, gap 8, 13px/15.7 */
+.btn--header {
+  padding: 14px 20px;
+  gap: 8px;
+  background: var(--c-primary);
+  color: var(--c-white);
+  font-size: 13px;
+  line-height: 15.7px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Header  —  node 7073:173
+   1440x80 · layout HORIZONTAL · pad 18/112 · SPACE_BETWEEN · CENTER
+   stroke #606A64 @ 10%, weight 1
+   -------------------------------------------------------------------------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px var(--gutter);
+  /* stroke INSIDE no Figma: a linha não pode somar à altura de 80px,
+     por isso inset box-shadow em vez de border-bottom. */
+  box-shadow: inset 0 -1px 0 var(--c-hairline);
+  background: var(--c-white);
+}
+
+.site-header__logo {
+  width: 174px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+
+.site-nav ul {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-nav a {
+  display: block;
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 400;
+  color: var(--c-body);
+  transition: color .2s ease;
+}
+
+.site-nav a:hover { color: var(--c-primary); }
+
+/* --------------------------------------------------------------------------
+   Hero  —  node 7075:53
+   1440x717 · HORIZONTAL · pad 80/112 · gap 80 · cross CENTER
+   -------------------------------------------------------------------------- */
+.hero__inner {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+}
+
+/* Coluna de texto — FILL, grow 1, VERTICAL gap 36 */
+.hero__text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero__eyebrow {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--c-primary);
+}
+
+.hero__block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hero__heading {
+  font-size: 48px;
+  line-height: 52.8px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.hero__lead {
+  font-size: 18px;
+  line-height: 27px;
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+.hero__support {
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Action_Group — HORIZONTAL gap 16, cross CENTER */
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Primary_CTA_Button — 291x59, pad 20/32, gap 12 */
+.btn--primary {
+  padding: 20px 32px;
+  gap: 12px;
+  background: var(--c-primary);
+  color: var(--c-white);
+  font-size: 16px;
+  line-height: 19.4px;
+  font-weight: 700;
+}
+
+.btn__icon--18 {
+  width: 18px;
+  height: 18px;
+}
+
+/* Microcopy_Row — 261x40, FILL grow 1, gap 12 */
+.hero__microcopy {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Location Text — hSize=FILL grow=1 no Figma (w=209).
+   Precisa ser um elemento próprio: texto nu vira item flex anônimo e não estica. */
+.hero__microcopy-text {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Mesma fronteira de quebra do .tech-badge__text: a linha
+     "São Paulo · Resposta pelo WhatsApp" mede 209,27px num container de 208,8. */
+  letter-spacing: -.01em;
+}
+
+/* Badge Icon — 40x40, stroke #01012C @ 10% INSIDE, radius 6 */
+.icon-box {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: var(--c-white);
+  border: 1px solid var(--c-primary-10);
+  border-radius: 6px;
+}
+
+.icon-box--55 {
+  width: 55px;
+  height: 55px;
+  background: var(--c-cream);
+}
+
+.icon-box--64 {
+  width: 64px;
+  height: 64px;
+}
+
+/* Sobre fundo escuro: sem preenchimento, borda branca a 30% */
+.icon-box--ghost {
+  background: none;
+  border-color: var(--c-white-30);
+}
+
+/* Coluna da imagem — 568x557 FIXED */
+.hero__media {
+  position: relative;
+  flex: 0 0 568px;
+  width: 568px;
+  margin: 0;
+}
+
+.hero__image {
+  width: 568px;
+  height: 557px;
+  object-fit: cover;
+  border-radius: 32px;
+}
+
+/* Clinical_Tech_Badge — ABSOLUTE, constraints LEFT/BOTTOM
+   x relativo = 6139-6167 = -28 · bottom = 717-646 = 71 */
+.tech-badge {
+  position: absolute;
+  left: -28px;
+  bottom: 71px;
+  display: flex;
+  gap: 12px;
+  width: 270px;
+  padding: 16px 16px 16px 12px;
+  background: var(--c-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.tech-badge__body {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tech-badge__title {
+  font-size: 14px;
+  line-height: 16.8px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.tech-badge__text {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 400;
+  color: var(--c-body);
+  /* O Figma quebra em 2 linhas: "Mapeamento de alta resolução" cabe nos 175px.
+     O Inter do browser mede essa linha em 175,2px — transborda por 0,2px e
+     vira 3 linhas, deixando o badge 13px mais alto. -0,01em (≈0,12px/caractere,
+     imperceptível) devolve a quebra do Figma com folga. */
+  letter-spacing: -.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho de seção  —  padrão reaproveitado em todas as seções
+   SectionHeader 1216x120 · VERTICAL gap 24
+   -------------------------------------------------------------------------- */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 15 nós de texto do arquivo têm textCase: UPPER no Figma. Vários guardam o
+   conteúdo em caixa mista, então a caixa alta precisa vir do CSS. */
+.eyebrow {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--c-primary);
+}
+
+/* MainHeadline — HORIZONTAL, SPACE_BETWEEN, cross CENTER, dois blocos de 592.
+   gap 16 é o mínimo: com 1216 - (592*2) sobram 32px, que é o gap real. */
+.section-header__split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-title,
+.section-heading {
+  font-size: 32px;
+  line-height: 38.4px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+/* Variante em duas colunas (título + lead lado a lado) */
+.section-title {
+  flex: 0 0 592px;
+  width: 592px;
+}
+
+.section-lead {
+  flex: 0 0 592px;
+  width: 592px;
+  font-size: 18px;
+  line-height: 27px;
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+/* --------------------------------------------------------------------------
+   Sinais de alerta  —  node 7075:85
+   1440x1052 · VERTICAL · pad 80/112 · gap 80 · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+
+/* AlertsGrid — HORIZONTAL WRAP, itemSpacing 24, counterAxisSpacing 24.
+   3 colunas: (1216 - 48) / 3 = 389,33 */
+.alert-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* AlertCard_Content — 389,33x246, pad 24, radius 16.
+   SPACE_BETWEEN ancora o texto na base independente do número de linhas. */
+.alert-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 246px;
+  padding: 24px;
+  background: var(--c-white);
+  border-radius: 16px;
+}
+
+.alert-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-card__title {
+  font-size: 18px;
+  line-height: 23.4px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.alert-card__text {
+  font-size: 16px;
+  line-height: 22.4px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* SectionFooter — 1216x120, pad 24, SPACE_BETWEEN, bg #01012C, radius 16 */
+.callout {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background: var(--c-primary);
+  border-radius: 16px;
+}
+
+.callout__main {
+  flex: 0 0 592px;
+  width: 592px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.callout__text {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--c-white);
+}
+
+/* ABSOLUTE no Figma, constraints LEFT/BOTTOM.
+   x 6165-5519 = 646 · transborda 39px acima (footer não recorta) */
+.callout__image {
+  position: absolute;
+  left: 646px;
+  bottom: 0;
+  width: 225.6px;
+  height: 159px;
+}
+
+/* CTA claro sobre o bloco escuro */
+.btn--light {
+  padding: 20px 32px;
+  gap: 12px;
+  background: var(--c-white);
+  color: var(--c-primary);
+  font-size: 16px;
+  line-height: 19.4px;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Por que com ultrassom  —  node 7090:78
+   1440x1361 · VERTICAL · pad 100/112 · gap 80 · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+.section--pad-100 { padding-block: 100px; }
+
+/* Header_Grid_Wrapper — 1216x921, HORIZONTAL gap 48 */
+.split-media {
+  display: flex;
+  gap: 48px;
+}
+
+/* Featured_Image_Wrapper — 560x921 FIXED, radius 32, clipsContent */
+.split-media__figure {
+  flex: 0 0 560px;
+  width: 560px;
+  height: 921px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 32px;
+}
+
+.split-media__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Header_Left — 608 FILL grow 1, VERTICAL gap 32 */
+.split-media__body {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Title_Group — VERTICAL gap 20 */
+.title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Eyebrow desta seção: 14px/16.9 ls 1.5 (a das outras é 12px/14.5 ls 1) */
+.eyebrow--lg {
+  font-size: 14px;
+  line-height: 16.9px;
+  letter-spacing: 1.5px;
+}
+
+.split-media__title {
+  font-size: 36px;
+  line-height: 43.2px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.split-media__text {
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Pillars_Layout — VERTICAL gap 24 */
+.pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pillars__label {
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  color: var(--c-primary);
+}
+
+.pillars__list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Pillar_Card — 608x127, HORIZONTAL gap 20, pad-bottom 24.
+   Divisor inferior confirmado no render; stroke INSIDE, então inset box-shadow
+   para não somar 1px à altura de 127. */
+.pillar {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 24px;
+  box-shadow: inset 0 -1px 0 var(--c-primary-10);
+}
+
+/* Number_Indicator — HUG, pad 4/8, bg #01012C @ 10%, radius 4 */
+.pillar__num {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: 4px 8px;
+  background: var(--c-primary-10);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+/* Text_Stack — FILL grow 1, VERTICAL gap 8 */
+.pillar__body {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pillar__title {
+  font-size: 18px;
+  line-height: 23.4px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.pillar__text {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* SectionFooter desta seção — 1216x160, pad 28 (a da seção anterior é 24) */
+.callout--evidencia { padding: 28px; }
+
+.callout__body {
+  flex: 0 0 581px;
+  width: 581px;
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 400;
+  color: var(--c-white);
+}
+
+/* ABSOLUTE, LEFT/BOTTOM: x 6152-5519 = 633 · transborda 44px acima */
+.callout--evidencia .callout__image {
+  left: 633px;
+  width: 240px;
+  height: 204px;
+}
+
+/* --------------------------------------------------------------------------
+   Como é feito  —  node 7075:201
+   1440x514 · VERTICAL · pad 80/112 · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+
+/* TimelineRow — 1216x221, HORIZONTAL gap 24, 4 colunas de 286.
+   flex-start porque no Figma os passos mantêm a altura natural (197 / 221),
+   não esticam até a altura da linha. */
+.timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.timeline__step {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* StepHeader — 286x27, HORIZONTAL gap 12, cross CENTER */
+.timeline__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* StepBadge — HUG, pad 6/10, bg #01012C, radius 6 */
+.timeline__badge {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: var(--c-primary);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 700;
+  color: var(--c-white);
+}
+
+/* ConnectorLine — LINE, FILL grow 1, stroke 1,5px. O 4º passo não tem. */
+.timeline__line {
+  flex: 1 1 0;
+  height: 1.5px;
+  background: var(--c-primary-10);
+}
+
+.timeline__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline__title {
+  font-size: 18px;
+  line-height: 21.8px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+
+.timeline__text {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* --------------------------------------------------------------------------
+   CTA intermediária  —  node 7075:239
+   1440x587 · VERTICAL · pad 120/112 · gap 48 · main/cross CENTER
+   Dois fills empilhados no Figma: IMAGE (scaleMode FILL) e #01012C a 90%.
+   -------------------------------------------------------------------------- */
+.cta-band {
+  position: relative;
+  padding-block: 120px;
+  background-image: url("../images/cta-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  isolation: isolate;
+}
+
+.cta-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--c-primary);
+  opacity: .9;
+}
+
+.cta-band__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+}
+
+/* Content_Stack — 800 FIXED, VERTICAL gap 24, cross CENTER */
+.cta-band__content {
+  width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.cta-band__eyebrow {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+
+.cta-band__title {
+  width: 100%;
+  font-size: 44px;
+  line-height: 52.8px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--c-cream);
+  text-align: center;
+}
+
+/* Supporting_Paragraph — 654 FIXED, opacity 0.9 no nó */
+.cta-band__text {
+  width: 654px;
+  font-size: 18px;
+  line-height: 28.8px;
+  font-weight: 400;
+  color: var(--c-cream);
+  opacity: .9;
+  text-align: center;
+}
+
+/* Action_Area — HUG, VERTICAL gap 20, cross CENTER */
+.cta-band__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.cta-band__microcopy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 400;
+  color: var(--c-mint);
+}
+
+/* --------------------------------------------------------------------------
+   Sobre o médico  —  node 7094:1533
+   1440x1286 · HORIZONTAL · pad 80/112 · gap 80 · bg #FAF8F5
+
+   No Figma as colunas somam 580 + 80 + 580 = 1240, transbordando 24px do
+   respiro lateral — inconsistência do arquivo, já que todas as outras seções
+   fecham em 1216. Corrigido por decisão do cliente: gap 56 em vez de 80.
+   Assim as duas colunas ficam nos 580 projetados (foto e texto intactos,
+   quebra de linha da timeline preservada) e o bloco alinha com o resto.
+   -------------------------------------------------------------------------- */
+.about { background: var(--c-cream); }
+
+.about__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 56px;
+}
+
+.about__left {
+  flex: 0 0 580px;
+  width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+/* Container — VERTICAL gap 32 */
+.about__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* paragraphSpacing 16 no nó de texto do Figma */
+.about__narrative {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* FormationSection — VERTICAL gap 24 */
+.about__formation {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* FormationHeader — gap 16 (o SectionHeader de cima usa 24) */
+.about__formation-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* TimelineColumn — 532 de largura. Os 48px restantes até 580 são um frame
+   vazio de 24px mais o gap de 24 no Figma; manter 532 preserva a quebra
+   de linha das instituições. */
+.trajetoria {
+  width: 532px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TimelineItem — HORIZONTAL gap 16. O espaçamento vertical vem do
+   padding-bottom do conteúdo, não de gap. */
+.trajetoria__item {
+  display: flex;
+  gap: 16px;
+}
+
+/* Marker — 24 de largura: bolinha de 12 centralizada + conector de 2px
+   que preenche o resto da altura. */
+.trajetoria__marker {
+  flex: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trajetoria__marker::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  background: var(--c-primary);
+  border-radius: 50%;
+}
+
+.trajetoria__marker::after {
+  content: "";
+  flex: 1 1 auto;
+  width: 2px;
+  background: var(--c-primary-10);
+}
+
+.trajetoria__item--last .trajetoria__marker::after { content: none; }
+
+/* Content — 492, pad 2/0/20/0, gap 4 */
+.trajetoria__content {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
+  padding-bottom: 20px;
+}
+
+.trajetoria__item--last .trajetoria__content { padding-bottom: 0; }
+
+.trajetoria__title {
+  font-size: 16px;
+  line-height: 20.8px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.trajetoria__inst {
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* RightColumn — 580, pad-bottom 80.
+   Sticky: a coluna esquerda é bem mais alta (1119 contra 708), então a foto
+   acompanha a leitura da trajetória em vez de sumir no topo. O
+   align-items:flex-start do .about__inner é o que permite o sticky funcionar
+   dentro do flex. */
+.about__media {
+  position: sticky;
+  top: 32px;
+  align-self: flex-start;
+  flex: 0 0 580px;
+  width: 580px;
+  margin: 0;
+  padding-bottom: 80px;
+}
+
+/* O badge é posicionado em relação à foto, que agora é sticky */
+.about__media > .tech-badge { position: absolute; }
+
+.about__photo {
+  width: 580px;
+  height: 628.3px;
+  object-fit: cover;
+  border-radius: 32px;
+}
+
+/* Clinical_Tech_Badge — ABSOLUTE: left -28, bottom 72,3 medido a partir
+   da base da foto (não da coluna, que tem 80px de padding). */
+/* hSize=HUG no Figma (os 266px são derivados do conteúdo, não fixos).
+   Com largura fixa o nome "Dr. Rômulo Malaquias" quebrava em duas linhas. */
+.tech-badge--doctor {
+  width: max-content;
+  max-width: 320px;
+  align-items: center;
+  left: -28px;
+  bottom: 152.3px;
+}
+
+.tech-badge--doctor .tech-badge__title { white-space: nowrap; }
+
+.tech-badge__body--doctor { gap: 6px; }
+
+.tech-badge__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Diferencial  —  node 7094:995
+   1440x550 · VERTICAL · pad 80/112 · gap 56 · bg #FFFFFF
+   -------------------------------------------------------------------------- */
+
+/* Header_Split — SPACE_BETWEEN, cross CENTER */
+.diferencial__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Header_Left — 580 FIXED, VERTICAL gap 20 */
+.diferencial__head-text {
+  flex: 0 0 580px;
+  width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Pillars_Container — VERTICAL gap 32 */
+.pilares {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.pilares__label {
+  font-size: 16px;
+  line-height: 19.4px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  color: var(--c-primary);
+}
+
+/* Pillars_Grid — HORIZONTAL gap 24, 4 colunas de 286 */
+.pilares__grid {
+  display: flex;
+  gap: 24px;
+}
+
+/* Pillar_Card — 286x210, pad 24, gap 20, radius 16.
+   stroke INSIDE: inset box-shadow para não somar 2px à altura. */
+.pilar-card {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--c-white);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--c-primary-10);
+}
+
+/* Badge_Row — 238x48, SPACE_BETWEEN, cross CENTER */
+.pilar-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.icon-box--48 {
+  width: 48px;
+  height: 48px;
+  background: var(--c-cream);
+  border-radius: 8px;
+}
+
+/* Number_Indicator — HUG, pad 4/8, bg #01012C @ 10%, radius 4 */
+.pilar-card__num {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  background: var(--c-primary-10);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.pilar-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pilar-card__title {
+  font-size: 18px;
+  line-height: 23.4px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.pilar-card__text {
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* --------------------------------------------------------------------------
+   O consultório  —  node 7094:1352
+   1440x789 · VERTICAL · pad 80/0 · gap 56 · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+.consultorio {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding: var(--section-py) 0;   /* sem respiro lateral: os filhos cuidam disso */
+  background: var(--c-cream);
+  overflow: hidden;               /* clipa os slides que sangram à direita */
+}
+
+/* Text_Content_Centered — pad 0/112, gap 24, cross MAX (base alinhada) */
+.consultorio__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  padding-inline: var(--gutter);
+}
+
+/* Frame 3 — FILL grow 1, VERTICAL gap 24 */
+.consultorio__text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header_Stack — VERTICAL gap 16 */
+.consultorio__title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Main_Headline usa 38,7 de line-height aqui, não os 38,4 das outras seções */
+.consultorio__title-stack .section-heading { line-height: 38.7px; }
+
+.consultorio__body {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Address_Block — HORIZONTAL gap 8, cross CENTER */
+.consultorio__address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Action_Row — FILL grow 1, main MAX (CTA à direita), cross CENTER */
+.consultorio__action {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Carousel_Wrapper — pad-left no gutter, VERTICAL gap 24.
+   position:relative porque as setas são ancoradas aqui, e não no viewport:
+   dentro do container de scroll elas rolariam junto com os slides. */
+.carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-left: var(--gutter);
+}
+
+/* Container de rolagem. Vai do gutter até a borda direita da viewport,
+   o que reproduz o sangramento do Figma e ao mesmo tempo torna o
+   carrossel funcional. Barra de rolagem escondida. */
+.carousel__viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+
+.carousel__viewport::-webkit-scrollbar { display: none; }
+
+/* is-scrollable é posto pelo JS só quando existe conteúdo excedente */
+.is-scrollable [data-carousel-viewport] { cursor: grab; }
+.is-scrollable [data-carousel-viewport] img { user-select: none; -webkit-user-drag: none; }
+
+/* Carousel_Track — gap 24, slides de 389 que transbordam à direita.
+   max-content é o que garante que o track fique do tamanho do conteúdo e
+   gere scrollWidth de verdade; sem isso o flex assume a largura do
+   scrollport e a rolagem fica inconsistente entre navegadores. */
+.carousel__track {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: max-content;
+}
+
+.carousel__item {
+  flex: 0 0 389px;
+  scroll-snap-align: start;
+}
+
+.carousel__slide {
+  width: 389px;
+  height: 287px;
+  object-fit: cover;
+  border-radius: 24px;
+}
+
+/* Carousel_Nav — 48x48 ABSOLUTE, radius 24, shadow 0/4/12 #1A221E @ 10%.
+   As duas não são simétricas no Figma (topo 116 vs 120); mantido como está. */
+.carousel__nav {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  background: var(--c-white);
+  border-radius: 24px;
+  box-shadow: var(--shadow-nav);
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.carousel__nav:hover { transform: scale(1.06); }
+
+.carousel__nav[disabled] {
+  opacity: .35;
+  cursor: default;
+}
+
+.carousel__nav[disabled]:hover { transform: none; }
+
+/* Ancoradas ao gutter: o carrossel sangra à direita, então o "1191" do Figma
+   é medido a partir da borda esquerda do conteúdo. */
+.carousel > .carousel__nav--prev {
+  left: calc(var(--gutter) - 24px);
+  top: 120px;
+}
+
+.carousel > .carousel__nav--next {
+  left: calc(var(--gutter) + var(--content-w) - 25px);
+  top: 116px;
+}
+
+/* Carousel_Pagination — dots centralizados na coluna de 1216, gap 6 */
+.carousel__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: var(--content-w);
+}
+
+.carousel__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-primary-10);
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.carousel__dot:hover { transform: scale(1.25); }
+
+.carousel__dot--active { background: var(--c-primary); }
+
+/* --------------------------------------------------------------------------
+   Depoimentos  —  node 7094:1353
+   1440x615 · VERTICAL · pad 80/112 · gap 56 · cross CENTER · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+.depoimentos { background: var(--c-cream); }
+
+.depoimentos__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+}
+
+/* SectionHeader — HORIZONTAL gap 16, cross CENTER */
+.depoimentos__head {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Frame 5 — FILL grow 1, VERTICAL gap 16 */
+.depoimentos__head-text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Aqui o título é #01012C, não o #1A221E das outras seções */
+.depoimentos__title { color: var(--c-primary); }
+
+/* Verified_Badge — HUG, gap 8, cross CENTER, #478024 a 80% */
+.depoimentos__verified {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 500;
+  color: var(--c-green);
+  opacity: .8;
+}
+
+/* Wrapper do carrossel: agrupa viewport + setas + dots, mantendo o gap 56
+   do Figma entre os cards e a paginação. */
+.depoimentos__carousel {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+}
+
+.depoimentos__viewport {
+  align-self: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+
+.depoimentos__viewport::-webkit-scrollbar { display: none; }
+
+/* AlertsGrid — HORIZONTAL gap 24, 3 cards de 389,33 */
+/* Sem max-content aqui, ao contrário do carrossel de fotos: os cards se
+   dimensionam em porcentagem do container, e max-content tornaria isso
+   circular. Com 3 cards eles preenchem exatamente a largura; a partir do 4º
+   transbordam e a rolagem entra sozinha. */
+.depoimentos__grid {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.depoimento { scroll-snap-align: start; }
+
+/* Testimonial_Card — 389,33x266, pad 32, gap 24, radius 16.
+   Base fixa em 1/3 da viewport (não flex:1) para que, quando o CPT tiver
+   mais de 3 depoimentos, eles transbordem e o carrossel role — em vez de
+   espremer todos na mesma largura. */
+.depoimento {
+  flex: 0 0 calc((100% - 48px) / 3);   /* 3 por vez, medido sobre o container
+                                          real — não sobre a constante 1216,
+                                          senão sobra overflow em viewports
+                                          que não dão exatamente 1216 */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  background: var(--c-white);
+  border-radius: 16px;
+}
+
+/* Card_Header — SPACE_BETWEEN, cross CENTER */
+.depoimento__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Stars_Row — HUG, gap 4 */
+.depoimento__stars {
+  display: flex;
+  gap: 4px;
+}
+
+.depoimento__quote {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* Card_Footer — SPACE_BETWEEN, cross CENTER */
+.depoimento__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Author_Stack — HUG, VERTICAL gap 2 */
+.depoimento__author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.depoimento__initials {
+  font-size: 14px;
+  line-height: 16.9px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.depoimento__label {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 400;
+  color: var(--c-body);
+  opacity: .8;
+}
+
+.depoimento__date {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 400;
+  color: var(--c-body);
+  opacity: .6;
+}
+
+/* Carousel_Pagination — HUG, centralizado pelo align-items do wrapper */
+.depoimentos__dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Aqui a nav é ancorada ao próprio bloco de 1216 (não sangra à direita como
+   o carrossel de fotos). A seta esquerda fica 1px mais abaixo no Figma. */
+.depoimentos__carousel > .carousel__nav--prev {
+  left: -24px;
+  top: 121px;
+}
+
+.depoimentos__carousel > .carousel__nav--next {
+  left: calc(var(--content-w) - 25px);
+  top: 116px;
+}
+
+/* --------------------------------------------------------------------------
+   Dúvidas frequentes  —  node 7075:464
+   1440x887 · HORIZONTAL · pad 80/112 · gap 56 · bg #FAF8F5
+   -------------------------------------------------------------------------- */
+.faq { background: var(--c-cream); }
+
+.faq__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 56px;
+}
+
+/* SectionHeader — 580 FILL grow 1, VERTICAL gap 24, pad-bottom 80 */
+.faq__aside {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 80px;
+}
+
+/* FAQ_Items — 580 FILL grow 1, sem gap: o espaçamento vem do padding
+   de cada item. */
+.faq__list {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* FAQ_Item fechado — 71px: pad 24 + header 23 + pad 24.
+   stroke #D9D4CC INSIDE, então inset box-shadow (borda superior). */
+.faq-item {
+  padding-block: 24px;
+  box-shadow: inset 0 1px 0 var(--c-border);
+}
+
+/* O primeiro item não tem borda e não tem padding-top */
+.faq-item--first {
+  padding-top: 0;
+  box-shadow: none;
+}
+
+/* accordion-header — SPACE_BETWEEN, cross CENTER, pergunta FILL grow 1
+   ocupando 560 dos 580 (chevron 20, sem gap) */
+.faq-item__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  font-size: 18px;
+  line-height: 23.4px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.faq-item__q::-webkit-details-marker { display: none; }
+
+.faq-item__q > span {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.faq-item__chevron {
+  flex: 0 0 20px;
+  transition: transform .2s ease;
+}
+
+.faq-item[open] .faq-item__chevron { transform: rotate(180deg); }
+
+/* Answer — gap 16 entre header e resposta */
+.faq-item__a {
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* --------------------------------------------------------------------------
+   CTA final  —  node 7094:1837
+   1440x642 · pad 0/112/80/112 · card interno de 1216x562
+   -------------------------------------------------------------------------- */
+.cta-final {
+  padding-top: 0;
+  padding-bottom: var(--section-py);
+}
+
+/* Card — pad 80, gap 48, SPACE_BETWEEN, cross MAX, radius 32.
+   Dois fills: a mesma foto de fundo dos outros CTAs e um gradiente
+   linear da direita (#01012C a 90%) para a esquerda (#01012C sólido). */
+.cta-final__card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 48px;
+  padding: 80px;
+  border-radius: 32px;
+  background-image:
+    linear-gradient(to left, var(--c-primary-90), var(--c-primary)),
+    url("../images/cta-bg.jpg");
+  background-size: cover, cover;
+  background-position: center, center;
+}
+
+/* Content_Stack — 581 FIXED, VERTICAL gap 56 */
+.cta-final__content {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 581px;
+  width: 581px;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.cta-final__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cta-final__title {
+  font-size: 44px;
+  line-height: 52.8px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--c-cream);
+}
+
+.cta-final__text {
+  font-size: 18px;
+  line-height: 28.8px;
+  font-weight: 400;
+  color: var(--c-cream);
+  opacity: .9;
+}
+
+/* Action_Area — VERTICAL gap 20 */
+.cta-final__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* Microcopy_Container — HORIZONTAL gap 16 (aqui é 16, não os 8 do CTA do meio) */
+.cta-final__microcopy {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--c-mint);
+}
+
+.cta-final__microcopy > span {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Image — ABSOLUTE, encostada no canto inferior direito, transbordando
+   28px acima do card (que não recorta). radii 0/0/32/0. */
+.cta-final__photo {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 674px;
+  height: 590px;
+  object-fit: cover;
+  border-radius: 0 0 32px 0;
+}
+
+/* ==========================================================================
+   LP2 — Liftera (frame 7002:24)
+   Só o que difere da LP1. Header, sobre-o-médico, consultório e depoimentos
+   são os mesmos componentes e reaproveitam o CSS acima sem alteração.
+   ========================================================================== */
+
+/* Hero: mesma estrutura, headline menor (37 contra 48) */
+.hero--liftera .hero__heading {
+  font-size: 37px;
+  line-height: 44.4px;
+}
+
+/* Cabeçalho de seção empilhado (título em cima, lead embaixo) — na LP1 os
+   dois ficam lado a lado em 592+592. MainHeadline: VERTICAL gap 16. */
+.section-header__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-lead--780 {
+  flex: none;
+  width: 780px;
+  max-width: 100%;
+}
+
+.section-lead--full {
+  flex: none;
+  width: 780px;
+  max-width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Cards de foto  —  nodes 7008:219 (sinais) e 7020:928 (resultados)
+   389,33x450, pad 8, radius 16, foto de fundo, número no topo e card de
+   texto ancorado na base por SPACE_BETWEEN.
+   -------------------------------------------------------------------------- */
+.foto-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.foto-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 450px;
+  padding: 8px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* NumberIndicator — HUG, pad 6/10, radius 6 */
+.foto-card__num {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--c-white-10);
+  color: var(--c-white);
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 700;
+}
+
+/* Em fotos claras o Figma inverte o badge para o azul-marinho a 10% */
+.foto-card__num--dark {
+  background: var(--c-primary-10);
+  color: var(--c-primary);
+}
+
+/* CardContent — pad 24, gap 8, radius 16. Em sinais tem stroke INSIDE,
+   em resultados não. */
+.foto-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: var(--c-white);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--c-primary-10);
+}
+
+.foto-card--resultado .foto-card__body { box-shadow: none; }
+
+.foto-card--resultado .foto-card__num {
+  font-size: 14px;
+  line-height: 16.9px;
+}
+
+.foto-card__title {
+  font-size: 18px;
+  line-height: 23.4px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.foto-card__text {
+  font-size: 16px;
+  line-height: 22.4px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* --------------------------------------------------------------------------
+   Variantes de callout da LP2
+   -------------------------------------------------------------------------- */
+
+/* sinais (7008:258): gap 32, container HUG, texto 557 fixo */
+.callout--hug { gap: 32px; }
+.callout--hug .callout__main { flex: 0 0 auto; width: auto; }
+.callout__text--557 { flex: 0 0 557px; width: 557px; }
+
+/* resultados (7027:1408): gap 24, container preenche o espaço */
+.callout--fill {
+  gap: 24px;
+  justify-content: flex-start;
+}
+
+.callout__main--fill { flex: 1 1 0; width: auto; }
+
+.callout__text--fill {
+  flex: 1 1 0;
+  width: auto;
+  color: var(--c-white-90);
+}
+
+/* imagem absoluta destas duas seções: x 781-112 = 669 */
+.callout__image--669 { left: 669px; }
+
+/* --------------------------------------------------------------------------
+   O que é o Liftera  —  node 7012:422
+   Header_Grid_Wrapper: 568 + 80 + 568 (na LP1 é 560 + 48 + 608)
+   -------------------------------------------------------------------------- */
+.split-media--liftera { gap: 80px; }
+
+.split-media--liftera .split-media__body { gap: 32px; }
+
+.split-media__figure--liftera {
+  flex: 1 1 0;
+  width: auto;
+  height: 802px;
+}
+
+/* pilares desta seção usam corpo em 14px */
+.pillar__text--14 {
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.pillar--last { box-shadow: none; padding-bottom: 0; }
+
+/* CTA que não estica na coluna */
+.btn--inline { align-self: flex-start; }
+
+/* --------------------------------------------------------------------------
+   Diferencial da LP2  —  node 7041:25
+   Header_Left (580) traz o CTA dentro; Header_Right (538) traz o parágrafo.
+   -------------------------------------------------------------------------- */
+.diferencial__head--split { align-items: flex-start; }
+
+.diferencial__head--split .diferencial__head-text {
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.diferencial__head-body {
+  flex: 0 0 538px;
+  width: 538px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.diferencial__body-text {
+  font-size: 16px;
+  line-height: 25.6px;
+  font-weight: 400;
+  color: var(--c-body);
+}
+
+/* --------------------------------------------------------------------------
+   CTA final da LP2  —  node 7094:1771
+   Card 1216x509 (LP1: 562) · conteúdo 687 HUG (LP1: 581 fixo)
+   Imagem 624x547 (LP1: 674x590)
+   -------------------------------------------------------------------------- */
+.cta-final__content--687 {
+  flex: 0 0 687px;
+  width: 687px;
+}
+
+/* Frame 14 usa gap 24, igual à LP1 — o gap 16 do Frame 15 é do wrapper
+   externo, que tem um filho só. */
+.cta-final__copy--16 { gap: 24px; }
+
+/* O Figma encaixa "Sua avaliação pode começar hoje" em UMA linha nos 687px.
+   Mesma fronteira de folga zero das outras quebras: o Inter do browser mede
+   a linha um pouco mais larga e joga para duas, custando 52,8px de altura. */
+.cta-final__card--liftera .cta-final__title { letter-spacing: -1.02px; }
+
+.cta-final__photo--liftera {
+  width: 624px;
+  height: 547px;
+}
+
+/* --------------------------------------------------------------------------
+   Rodapé  —  node 7075:541
+   1440x363 · VERTICAL · pad 80/112/32/112 · gap 32 · bg #000014
+   -------------------------------------------------------------------------- */
+.site-footer {
+  padding: 80px var(--gutter) 32px;
+  background: var(--c-footer);
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* footer-columns — HORIZONTAL gap 48, 5 colunas de 204,8.
+   flex-start porque no Figma cada coluna mantém a altura natural
+   (32 / 123 / 114 / 102 / 81), não estica. */
+.site-footer__cols {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.site-footer__col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.site-footer__logo {
+  width: 174px;
+  height: 32px;
+}
+
+.site-footer__title {
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+
+.site-footer__item {
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--c-white-90);
+}
+
+.site-footer__item a { transition: opacity .2s ease; }
+.site-footer__item a:hover { opacity: .7; text-decoration: underline; }
+
+/* footer-divider — 1216x1, branco a 10% */
+.site-footer__divider {
+  height: 1px;
+  background: var(--c-white-10);
+}
+
+/* Frame 6 — HORIZONTAL gap 32, SPACE_BETWEEN, cross CENTER */
+.site-footer__base {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+/* 573 FIXED, branco a 80% */
+.site-footer__disclaimer {
+  flex: 0 0 573px;
+  width: 573px;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--c-white-80);
+}
+
+/* Frame 7 — HUG, gap 10, cross CENTER */
+.site-footer__credit {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 14.5px;
+  font-weight: 400;
+  color: var(--c-cream);
+}
