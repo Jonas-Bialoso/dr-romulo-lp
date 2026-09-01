@@ -160,14 +160,17 @@ return array(
 			'liftera' => array(
 				array(
 					'titulo' => 'Energia focada, não superficial',
+					'icone' => 'icon-liftera-energia.svg',
 					'texto' => 'A energia atravessa a superfície da pele sem lesioná-la e se concentra apenas na profundidade programada. É por isso que o procedimento dispensa cortes e não exige afastamento das atividades.',
 				),
 				array(
 					'titulo' => 'Camadas que sustentam o rosto',
+					'icone' => 'icon-liftera-camadas.svg',
 					'texto' => 'O aparelho permite trabalhar em diferentes profundidades, incluindo o plano onde estão as estruturas responsáveis pela sustentação facial, a mesma região que a cirurgia plástica traciona.',
 				),
 				array(
 					'titulo' => 'Resultado construído pelo seu corpo',
+					'icone' => 'icon-liftera-colageno.svg',
 					'texto' => 'O que muda o aspecto da pele não é o aparelho: é o colágeno que o seu organismo produz em resposta ao estímulo. Por isso os efeitos são progressivos e aparecem ao longo de semanas, não no dia seguinte.',
 				),
 			),

@@ -196,11 +196,22 @@ function drm_lista_numerada( $itens, $texto_pequeno = false ) {
 		return;
 	}
 	$ultimo = count( $itens ) - 1;
-	echo '<ol class="pillars__list">';
+
+	// O Figma troca o número por um ícone quando o item tem um definido — é o
+	// caso do mecanismo do Liftera. A lista inteira segue o primeiro item.
+	$com_icone = (bool) get_post_meta( $itens[0]->ID, 'drm_icone', true );
+
+	printf( '<ol class="pillars__list%s">', $com_icone ? ' pillars__list--icones' : '' );
 	foreach ( $itens as $i => $post ) {
+		$icone = get_post_meta( $post->ID, 'drm_icone', true );
 		?>
 		<li class="pillar <?php echo $i === $ultimo ? 'pillar--last' : ''; ?>">
-			<span class="pillar__num" aria-hidden="true"><?php echo esc_html( drm_num( $i ) ); ?></span>
+			<?php if ( $icone ) : ?>
+				<img class="pillar__icon" src="<?php echo esc_url( drm_icone( $icone ) ); ?>"
+				     alt="" aria-hidden="true" width="38" height="38">
+			<?php else : ?>
+				<span class="pillar__num" aria-hidden="true"><?php echo esc_html( drm_num( $i ) ); ?></span>
+			<?php endif; ?>
 			<div class="pillar__body">
 				<h3 class="pillar__title"><?php echo esc_html( $post->post_title ); ?></h3>
 				<p class="pillar__text <?php echo $texto_pequeno ? 'pillar__text--14' : ''; ?>"><?php echo esc_html( drm_texto( $post ) ); ?></p>

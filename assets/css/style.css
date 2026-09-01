@@ -16,6 +16,7 @@
   --section-px: clamp(24px, 7.78vw, 112px);     /* padding 112 / 1440 = 7.78vw */
   --content-gap: 80px;                          /* itemSpacing padrão das seções */
   --section-py: 80px;                           /* padding vertical padrão */
+  --sticky-top: 88px;                           /* header encolhido (64) + folga */
 
   /* Respiro lateral efetivo. Abaixo de 1440 vale o --section-px fluido;
      acima, cresce para manter o conteúdo travado em 1216 e centralizado.
@@ -808,6 +809,18 @@ html { scroll-behavior: smooth; }
   color: var(--c-primary);
 }
 
+/* Variante da LP2 ("O que é o Liftera"): o Figma usa ícone no lugar do
+   número. Os frames de ícone lá são 38, 38 e 30 — a coluna fica fixa em 38
+   para as três linhas alinharem, e o `object-fit: none` preserva o tamanho
+   natural de cada SVG dentro dela. */
+.pillar__icon {
+  flex: 0 0 38px;
+  align-self: flex-start;
+  width: 38px;
+  height: 38px;
+  object-fit: none;
+}
+
 /* Text_Stack — FILL grow 1, VERTICAL gap 8 */
 .pillar__body {
   flex: 1 1 0;
@@ -1140,7 +1153,7 @@ html { scroll-behavior: smooth; }
    dentro do flex. */
 .about__media {
   position: sticky;
-  top: 32px;
+  top: var(--sticky-top);
   align-self: flex-start;
   flex: 0 0 580px;
   width: 580px;
@@ -1659,8 +1672,14 @@ html { scroll-behavior: smooth; }
   gap: 56px;
 }
 
-/* SectionHeader — 580 FILL grow 1, VERTICAL gap 24, pad-bottom 80 */
+/* SectionHeader — 580 FILL grow 1, VERTICAL gap 24, pad-bottom 80.
+   Sticky pelo mesmo motivo da foto do médico: a coluna de perguntas é muito
+   mais alta que o cabeçalho, então o título e o CTA acompanham a leitura em
+   vez de sumirem no topo já na primeira pergunta aberta. */
 .faq__aside {
+  position: sticky;
+  top: var(--sticky-top);
+  align-self: flex-start;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
@@ -2665,7 +2684,14 @@ body.lightbox-aberto { overflow: hidden; }
 
   .about__left { flex: none; }
 
-  .faq__aside { padding-bottom: 0; }
+  /* Empilhado, o cabeçalho vira a primeira coisa da seção — sticky aqui só
+     faria ele pairar sobre as perguntas. */
+  .faq__aside {
+    position: static;
+    top: auto;
+    flex: none;
+    padding-bottom: 0;
+  }
 
   .hero__media { flex: none; }
 
