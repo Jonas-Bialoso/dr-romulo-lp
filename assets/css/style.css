@@ -99,6 +99,105 @@ ul, ol { padding: 0; list-style: none; }
 }
 
 /* --------------------------------------------------------------------------
+   Animações de entrada
+
+   O atributo data-reveal é aplicado pelo JS, nunca no HTML: assim, se o
+   JavaScript falhar ou estiver desligado, nada fica invisível. O
+   .js-reveal-ready no <html> é o interruptor — sem ele o estado inicial
+   nem chega a ser aplicado.
+   -------------------------------------------------------------------------- */
+.js-reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  will-change: opacity, transform;
+}
+
+.js-reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity .75s cubic-bezier(.22, 1, .36, 1),
+    transform .75s cubic-bezier(.22, 1, .36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Mídias entram com um leve zoom-out em vez de deslizar */
+.js-reveal-ready [data-reveal="media"] {
+  transform: translateY(16px) scale(1.02);
+}
+
+.js-reveal-ready [data-reveal="media"].is-visible { transform: none; }
+
+/* Terminada a animação, libera o will-change */
+.js-reveal-ready [data-reveal].is-done { will-change: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal-ready [data-reveal],
+  .js-reveal-ready [data-reveal="media"] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Micro-interações
+   -------------------------------------------------------------------------- */
+.alert-card,
+.pilar-card,
+.foto-card,
+.depoimento,
+.carousel__slide {
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1), box-shadow .35s ease;
+}
+
+@media (hover: hover) {
+  .alert-card:hover,
+  .pilar-card:hover {
+    transform: translateY(-4px);
+    box-shadow: inset 0 0 0 1px var(--c-primary-10), 0 12px 32px rgba(1, 1, 44, .07);
+  }
+
+  .foto-card:hover { transform: translateY(-4px); }
+
+  .depoimento:hover { box-shadow: 0 12px 32px rgba(1, 1, 44, .07); }
+
+  .faq-item__q:hover { color: var(--c-body); }
+
+  .site-nav ul a { position: relative; }
+
+  /* sublinhado que cresce a partir da esquerda */
+  .site-nav ul a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 100%;
+    height: 1.5px;
+    background: var(--c-primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .site-nav ul a:hover::after { transform: scaleX(1); }
+}
+
+.faq-item__a {
+  animation: faq-abre .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes faq-abre {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-item__a { animation: none; }
+  .alert-card, .pilar-card, .foto-card, .depoimento, .carousel__slide { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
    Utilitários de layout
    -------------------------------------------------------------------------- */
 /* Seção full-bleed com respiro lateral fluido */
@@ -164,6 +263,9 @@ ul, ol { padding: 0; list-style: none; }
    stroke #606A64 @ 10%, weight 1
    -------------------------------------------------------------------------- */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -172,6 +274,33 @@ ul, ol { padding: 0; list-style: none; }
      por isso inset box-shadow em vez de border-bottom. */
   box-shadow: inset 0 -1px 0 var(--c-hairline);
   background: var(--c-white);
+  transition: box-shadow .3s ease, padding .3s ease, background-color .3s ease;
+}
+
+/* Ao descolar do topo o header ganha profundidade e encolhe um pouco.
+   is-stuck é posto pelo JS a partir de 8px de rolagem. */
+.site-header.is-stuck {
+  padding-block: 10px;
+  background: rgba(255, 255, 255, .82);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  box-shadow: inset 0 -1px 0 var(--c-hairline), 0 8px 28px rgba(1, 1, 44, .07);
+}
+
+.site-header.is-stuck .site-header__logo {
+  transform: scale(.92);
+  transform-origin: left center;
+}
+
+.site-header__logo { transition: transform .3s ease; }
+
+/* o header fixo não pode cobrir o título da seção ao pular por âncora */
+[id] { scroll-margin-top: 104px; }
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 .site-header__logo {
@@ -186,7 +315,7 @@ ul, ol { padding: 0; list-style: none; }
   gap: 24px;
 }
 
-.site-nav a {
+.site-nav ul a {
   display: block;
   font-size: 14px;
   line-height: 16.9px;
@@ -195,7 +324,10 @@ ul, ol { padding: 0; list-style: none; }
   transition: color .2s ease;
 }
 
-.site-nav a:hover { color: var(--c-primary); }
+.site-nav ul a:hover { color: var(--c-primary); }
+
+/* CTA que só existe dentro do painel do menu mobile */
+.site-nav__cta { display: none; }
 
 /* --------------------------------------------------------------------------
    Hero  —  node 7075:53
@@ -2005,6 +2137,42 @@ ul, ol { padding: 0; list-style: none; }
    -------------------------------------------------------------------------- */
 @media (max-width: 1199px) {
 
+  /* ---- Balanceamento de quebra de linha ----
+     Só a partir daqui: no desktop as quebras foram validadas contra o Figma
+     e `balance` as reorganizaria, mudando as alturas medidas.
+
+     Títulos e textos curtos usam `balance`, que distribui as linhas de forma
+     equilibrada. Parágrafos longos usam `pretty`, que evita órfã na última
+     linha — em textos com muitas linhas o `balance` é ignorado pelo navegador,
+     então ali ele não faria efeito nenhum. */
+  h1, h2, h3, h4,
+  .eyebrow, .hero__eyebrow, .cta-band__eyebrow,
+  .section-title, .section-heading, .section-lead,
+  .hero__heading, .hero__lead, .hero__microcopy-text,
+  .cta-band__title, .cta-band__text, .cta-band__microcopy,
+  .cta-final__title, .cta-final__microcopy,
+  .foto-card__title, .foto-card__text,
+  .alert-card__title, .alert-card__text,
+  .pilar-card__title, .pilar-card__text,
+  .pillar__title, .pillar__text,
+  .timeline__title, .timeline__text,
+  .trajetoria__title, .trajetoria__inst,
+  .depoimento__quote, .depoimentos__verified,
+  .faq-item__q, .pilares__label, .pillars__label,
+  .consultorio__address-text, .callout__text, .callout__body,
+  .site-footer__title, .site-footer__item, .site-footer__disclaimer,
+  .tech-badge__title, .tech-badge__text,
+  li, span, figcaption {
+    text-wrap: balance;
+  }
+
+  p,
+  .hero__support, .split-media__text, .about__narrative p,
+  .diferencial__body-text, .consultorio__body,
+  .faq-item__a, .cta-final__text {
+    text-wrap: pretty;
+  }
+
   /* Blocos de texto que tinham largura travada em px */
   .section-title,
   .section-lead,
@@ -2102,18 +2270,45 @@ ul, ol { padding: 0; list-style: none; }
    -------------------------------------------------------------------------- */
 @media (max-width: 1023px) {
 
-  .site-header { position: relative; flex-wrap: wrap; }
-
-  .nav-toggle { display: flex; }
-
-  .site-nav {
-    display: none;
-    order: 3;
-    flex: 1 0 100%;
-    padding-top: 18px;
+  .nav-toggle {
+    display: flex;
+    position: relative;
+    z-index: 110;
   }
 
-  .site-header.is-open .site-nav { display: block; }
+  /* O overlay é position:fixed. O backdrop-filter do header sticky cria
+     bloco de contenção para fixed e prenderia o painel dentro do header,
+     então ele é desligado enquanto o menu está aberto. */
+  .site-header.is-open {
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .site-nav {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 112px var(--gutter) 56px;
+    background: var(--c-primary);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition:
+      opacity .3s ease,
+      transform .35s cubic-bezier(.22, 1, .36, 1),
+      visibility .35s;
+  }
+
+  .site-header.is-open .site-nav {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
 
   .site-nav ul {
     flex-direction: column;
@@ -2121,19 +2316,100 @@ ul, ol { padding: 0; list-style: none; }
     gap: 0;
   }
 
-  .site-nav a {
-    padding: 14px 0;
-    font-size: 16px;
-    line-height: 24px;
-    box-shadow: inset 0 -1px 0 var(--c-hairline);
+  /* itens entram em cascata depois do painel */
+  .site-nav li {
+    opacity: 0;
+    transform: translateY(16px);
   }
 
-  /* logo, CTA e botão ficam na ordem do DOM (order 0); só o nav vai para
-     baixo, ocupando a linha inteira quando aberto. */
+  .site-header.is-open .site-nav li {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity .45s ease,
+      transform .45s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .site-header.is-open .site-nav li:nth-child(1) { transition-delay: .12s; }
+  .site-header.is-open .site-nav li:nth-child(2) { transition-delay: .18s; }
+  .site-header.is-open .site-nav li:nth-child(3) { transition-delay: .24s; }
+  .site-header.is-open .site-nav li:nth-child(4) { transition-delay: .30s; }
+  .site-header.is-open .site-nav li:nth-child(5) { transition-delay: .36s; }
+
+  /* escopado em `ul a`: sem isso o CTA do painel, que também é um <a> dentro
+     do nav, herdava display:block e cor branca — texto invisível no botão. */
+  .site-nav ul a {
+    display: block;
+    padding: 20px 0;
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 700;
+    color: var(--c-white);
+    box-shadow: inset 0 -1px 0 var(--c-white-10);
+    transition: color .25s ease, padding-left .25s ease;
+  }
+
+  .site-nav ul a:hover,
+  .site-nav ul a:focus-visible {
+    color: var(--c-mint);
+    padding-left: 8px;
+  }
+
+  .site-nav ul a::after { content: none; }
+
+  /* CTA dentro do painel, colado no fim da lista */
+  .site-nav__cta {
+    display: inline-flex;
+    align-self: stretch;
+    margin-top: 40px;
+    padding: 20px 32px;
+    font-size: 16px;
+    line-height: 19.4px;
+    font-weight: 700;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .site-header.is-open .site-nav__cta {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity .45s ease,
+      transform .45s cubic-bezier(.22, 1, .36, 1);
+    transition-delay: .42s;
+  }
+
+  /* o hambúrguer vira X branco sobre o painel escuro */
+  .site-header.is-open .nav-toggle { box-shadow: inset 0 0 0 1px var(--c-white-30); }
+  .site-header.is-open .nav-toggle__bars::before,
+  .site-header.is-open .nav-toggle__bars::after { background: var(--c-white); }
+
+  /* logo sobe acima do painel e é invertido para branco (o SVG é monocromático) */
+  .site-header.is-open .site-header__logo {
+    position: relative;
+    z-index: 110;
+    filter: brightness(0) invert(1);
+  }
+
   .btn--header {
     padding: 12px 16px;
     font-size: 12px;
+    transition: opacity .25s ease;
   }
+
+  .site-header.is-open .btn--header {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* trava a rolagem do fundo enquanto o painel está aberto */
+  body.menu-aberto { overflow: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav,
+  .site-nav li,
+  .site-nav a { transition: none !important; }
 }
 
 /* --------------------------------------------------------------------------
@@ -2209,7 +2485,38 @@ ul, ol { padding: 0; list-style: none; }
   /* a linha conectora da timeline só faz sentido em fila única */
   .timeline__line { display: none; }
 
-  .cta-final__photo { align-self: center; }
+  /* CTA final: imagem encostada nas bordas do card. O respiro passa a ser do
+     conteúdo, não do card — antes a foto ficava "flutuando" com margem. */
+  .cta-final__card {
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .cta-final__content,
+  .cta-final__content--687 {
+    padding: 40px 24px 32px;
+  }
+
+  .cta-final__photo,
+  .cta-final__photo--liftera {
+    position: static;
+    align-self: stretch;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    object-fit: cover;
+  }
+
+  /* Diferencial: na LP2 o CTA vive dentro da coluna do título e acabava
+     espremido entre o h2 e o parágrafo. display:contents solta os filhos no
+     flex do pai, permitindo mandar o botão para depois do texto. */
+  .diferencial__head--split { gap: 20px; }
+  .diferencial__head--split .diferencial__head-text { display: contents; }
+  .diferencial__head--split .diferencial__head-body { order: 3; }
+  .diferencial__head--split .btn { order: 4; align-self: flex-start; }
 
   .cta-band__title { font-size: 36px; line-height: 43.2px; }
   .cta-final__title { font-size: 36px; line-height: 43.2px; }
@@ -2266,7 +2573,10 @@ ul, ol { padding: 0; list-style: none; }
 
   .cta-band { padding-block: 56px; }
 
-  .cta-final__card { padding: 32px 24px; }
+  /* o card do CTA fica sem padding desde 899 — o respiro é do conteúdo, para
+     a foto encostar nas bordas. Só o conteúdo aperta um pouco mais aqui. */
+  .cta-final__content,
+  .cta-final__content--687 { padding: 32px 20px 28px; }
 
   .callout,
   .callout--evidencia,
@@ -2280,9 +2590,47 @@ ul, ol { padding: 0; list-style: none; }
   /* Depoimentos: um card por vez — aqui o carrossel finalmente pagina */
   .depoimento { flex: 0 0 min(320px, 82vw); }
 
-  /* No mobile as setas ficariam sobre o conteúdo do card. Ficam o arrasto
-     nativo e os dots, que são clicáveis — padrão de carrossel em toque. */
-  .carousel__nav { display: none; }
+  /* Setas do carrossel: em vez de sumirem (ficavam por cima do card), saem do
+     absoluto e formam uma barra de controle abaixo, junto com os dots. */
+  .carousel,
+  .depoimentos__carousel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .carousel__viewport,
+  .depoimentos__viewport { flex: 1 0 100%; }
+
+  .carousel > .carousel__nav,
+  .depoimentos__carousel > .carousel__nav {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+  }
+
+  .carousel > .carousel__nav--prev,
+  .depoimentos__carousel > .carousel__nav--prev { order: 1; }
+
+  .carousel__dots,
+  .depoimentos__dots { order: 2; width: auto; }
+
+  .carousel > .carousel__nav--next,
+  .depoimentos__carousel > .carousel__nav--next { order: 3; }
+
+  /* Callout: ícone acima do texto, senão os dois disputam a largura */
+  .callout__main,
+  .callout__main--fill {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 
   .site-footer__col { flex: 1 1 100%; }
 

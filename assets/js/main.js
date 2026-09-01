@@ -206,7 +206,27 @@
   }
 
   /* ------------------------------------------------------------------
-     Menu mobile — o nav só cabe ao lado do logo e do CTA acima de 1024px
+     Header sticky — ganha profundidade e encolhe ao descolar do topo
+     ------------------------------------------------------------------ */
+  function initHeader() {
+    var header = document.querySelector('.site-header');
+    if (!header) return;
+
+    var agendado = false;
+    function avaliar() {
+      header.classList.toggle('is-stuck', window.scrollY > 8);
+    }
+    window.addEventListener('scroll', function () {
+      if (agendado) return;
+      agendado = true;
+      window.requestAnimationFrame(function () { agendado = false; avaliar(); });
+    }, { passive: true });
+    avaliar();
+  }
+
+  /* ------------------------------------------------------------------
+     Menu mobile — painel sobreposto; o nav só cabe ao lado do logo e do
+     CTA acima de 1024px
      ------------------------------------------------------------------ */
   function initMenu() {
     var botao = document.querySelector('[data-nav-toggle]');
@@ -216,14 +236,20 @@
 
     function fechar() {
       header.classList.remove('is-open');
+      document.body.classList.remove('menu-aberto');
       botao.setAttribute('aria-expanded', 'false');
       botao.setAttribute('aria-label', 'Abrir menu');
     }
 
     botao.addEventListener('click', function () {
       var aberto = header.classList.toggle('is-open');
+      document.body.classList.toggle('menu-aberto', aberto);
       botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
       botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+      if (aberto) {
+        var primeiro = nav.querySelector('a');
+        if (primeiro) primeiro.focus({ preventScroll: true });
+      }
     });
 
     // clicar num item leva à seção e fecha o menu
@@ -242,8 +268,70 @@
     else mq.addListener(aoMudar);
   }
 
+  /* ------------------------------------------------------------------
+     Animações de entrada
+
+     Os alvos são marcados aqui, não no HTML: se o JS não rodar, nada fica
+     preso invisível. O atraso em cascata é calculado pela posição do
+     elemento dentro do próprio pai, então grades animam item a item.
+     ------------------------------------------------------------------ */
+  var ALVOS = [
+    '.hero__text', '.hero__media',
+    '.section-header', '.stack-56 > .section-header',
+    '.alert-card', '.foto-card', '.pilar-card', '.pillar',
+    '.timeline__step', '.trajetoria__item', '.faq-item',
+    '.callout', '.split-media__figure', '.split-media__body',
+    '.about__left', '.consultorio__text', '.consultorio__action',
+    '.carousel', '.depoimentos__head', '.depoimentos__carousel',
+    '.cta-band__content', '.cta-band__actions',
+    '.cta-final__content', '.cta-final__photo',
+    '.site-footer__col', '.site-footer__base'
+  ];
+
+  var MIDIAS = ['.hero__media', '.split-media__figure', '.cta-final__photo'];
+
+  function initReveal() {
+    if (!('IntersectionObserver' in window)) return;
+    if (semMovimento.matches) return;
+
+    var vistos = [];
+    ALVOS.forEach(function (sel) {
+      var els = document.querySelectorAll(sel);
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        if (el.hasAttribute('data-reveal')) continue;
+        // sticky + transform/will-change não combinam: a foto do médico fica fora
+        if (el.classList.contains('about__media')) continue;
+        el.setAttribute('data-reveal', MIDIAS.indexOf(sel) > -1 ? 'media' : '');
+        // cascata pela posição entre os irmãos
+        var irmaos = el.parentElement ? el.parentElement.children : [el];
+        var idx = Array.prototype.indexOf.call(irmaos, el);
+        el.style.setProperty('--reveal-delay', Math.min(idx * 70, 350) + 'ms');
+        vistos.push(el);
+      }
+    });
+
+    if (!vistos.length) return;
+    document.documentElement.classList.add('js-reveal-ready');
+
+    var obs = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-visible');
+        obs.unobserve(e.target);
+        e.target.addEventListener('transitionend', function () {
+          e.target.classList.add('is-done');
+        }, { once: true });
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+
+    vistos.forEach(function (el) { obs.observe(el); });
+  }
+
   function iniciar() {
+    initHeader();
     initMenu();
+    initReveal();
     var lista = document.querySelectorAll('[data-carousel]');
     for (var i = 0; i < lista.length; i++) initCarousel(lista[i]);
   }
